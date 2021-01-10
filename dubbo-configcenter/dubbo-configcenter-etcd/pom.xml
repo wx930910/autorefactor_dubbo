@@ -58,6 +58,7 @@
             <artifactId>dubbo-remoting-etcd3</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        
     </dependencies>
 
     <build>

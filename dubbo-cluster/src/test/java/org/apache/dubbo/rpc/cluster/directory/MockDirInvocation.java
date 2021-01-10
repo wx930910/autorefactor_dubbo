@@ -16,13 +16,6 @@
  */
 package org.apache.dubbo.rpc.cluster.directory;
 
-import org.apache.dubbo.rpc.AttachmentsAdapter;
-import org.apache.dubbo.rpc.Invocation;
-import org.apache.dubbo.rpc.Invoker;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.apache.dubbo.common.constants.CommonConstants.DUBBO_VERSION_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.GROUP_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.PATH_KEY;
@@ -30,130 +23,128 @@ import static org.apache.dubbo.common.constants.CommonConstants.TIMEOUT_KEY;
 import static org.apache.dubbo.common.constants.CommonConstants.VERSION_KEY;
 import static org.apache.dubbo.rpc.Constants.TOKEN_KEY;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.dubbo.rpc.AttachmentsAdapter;
+import org.apache.dubbo.rpc.Invocation;
+import org.mockito.Mockito;
+
 /**
  * MockInvocation.java
  */
-public class MockDirInvocation implements Invocation {
+class MockDirInvocation {
 
-    private Map<String, Object> attachments;
-
-    public MockDirInvocation() {
-        attachments = new HashMap<>();
-        attachments.put(PATH_KEY, "dubbo");
-        attachments.put(GROUP_KEY, "dubbo");
-        attachments.put(VERSION_KEY, "1.0.0");
-        attachments.put(DUBBO_VERSION_KEY, "1.0.0");
-        attachments.put(TOKEN_KEY, "sfag");
-        attachments.put(TIMEOUT_KEY, "1000");
-    }
-
-    @Override
-    public String getTargetServiceUniqueName() {
-        return null;
-    }
-
-    @Override
-    public String getProtocolServiceKey() {
-        return null;
-    }
-
-    public String getMethodName() {
-        return "echo";
-    }
-
-    @Override
-    public String getServiceName() {
-        return "DemoService";
-    }
-
-    public Class<?>[] getParameterTypes() {
-        return new Class[]{String.class};
-    }
-
-    public Object[] getArguments() {
-        return new Object[]{"aa"};
-    }
-
-    public Map<String, String> getAttachments() {
-        return new AttachmentsAdapter.ObjectToStringMap(attachments);
-    }
-
-    @Override
-    public Map<String, Object> getObjectAttachments() {
-        return attachments;
-    }
-
-    @Override
-    public void setAttachment(String key, String value) {
-        setObjectAttachment(key, value);
-    }
-
-    @Override
-    public void setAttachment(String key, Object value) {
-       setObjectAttachment(key, value);
-    }
-
-    @Override
-    public void setObjectAttachment(String key, Object value) {
-        attachments.put(key, value);
-    }
-
-    @Override
-    public void setAttachmentIfAbsent(String key, String value) {
-        setObjectAttachmentIfAbsent(key, value);
-    }
-
-    @Override
-    public void setAttachmentIfAbsent(String key, Object value) {
-        setObjectAttachmentIfAbsent(key, value);
-    }
-
-    @Override
-    public void setObjectAttachmentIfAbsent(String key, Object value) {
-        if (attachments.get(key) == null) {
-            attachments.put(key, value);
-        }
-    }
-
-    public Invoker<?> getInvoker() {
-        return null;
-    }
-
-    @Override
-    public Object put(Object key, Object value) {
-        return null;
-    }
-
-    @Override
-    public Object get(Object key) {
-        return null;
-    }
-
-    @Override
-    public Map<Object, Object> getAttributes() {
-        return null;
-    }
-
-    public String getAttachment(String key) {
-        return (String) getObjectAttachment(key);
-    }
-
-    @Override
-    public Object getObjectAttachment(String key) {
-        return attachments.get(key);
-    }
-
-    public String getAttachment(String key, String defaultValue) {
-        return (String) getObjectAttachment(key, defaultValue);
-    }
-
-    @Override
-    public Object getObjectAttachment(String key, Object defaultValue) {
-        Object result = attachments.get(key);
-        if (result == null) {
-            return defaultValue;
-        }
-        return result;
-    }
+	static public Invocation mockInvocation1() {
+		Map<String, Object>[] mockFieldVariableAttachments = new Map[1];
+		Invocation mockInstance = Mockito.spy(Invocation.class);
+		mockFieldVariableAttachments[0] = new HashMap<>();
+		mockFieldVariableAttachments[0].put(PATH_KEY, "dubbo");
+		mockFieldVariableAttachments[0].put(GROUP_KEY, "dubbo");
+		mockFieldVariableAttachments[0].put(VERSION_KEY, "1.0.0");
+		mockFieldVariableAttachments[0].put(DUBBO_VERSION_KEY, "1.0.0");
+		mockFieldVariableAttachments[0].put(TOKEN_KEY, "sfag");
+		mockFieldVariableAttachments[0].put(TIMEOUT_KEY, "1000");
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getProtocolServiceKey();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				if (mockFieldVariableAttachments[0].get(key) == null) {
+					mockFieldVariableAttachments[0].put(key, value);
+				}
+				return null;
+			}).when(mockInstance).setObjectAttachmentIfAbsent(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				return (String) mockInstance.getObjectAttachment(key);
+			}).when(mockInstance).getAttachment(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).put(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				mockInstance.setObjectAttachmentIfAbsent(key, value);
+				return null;
+			}).when(mockInstance).setAttachmentIfAbsent(Mockito.any(String.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				String value = stubInvo.getArgument(1);
+				mockInstance.setObjectAttachment(key, value);
+				return null;
+			}).when(mockInstance).setAttachment(Mockito.any(String.class), Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				String value = stubInvo.getArgument(1);
+				mockInstance.setObjectAttachmentIfAbsent(key, value);
+				return null;
+			}).when(mockInstance).setAttachmentIfAbsent(Mockito.any(String.class), Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return new AttachmentsAdapter.ObjectToStringMap(mockFieldVariableAttachments[0]);
+			}).when(mockInstance).getAttachments();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableAttachments[0];
+			}).when(mockInstance).getObjectAttachments();
+			Mockito.doAnswer((stubInvo) -> {
+				return new Object[] { "aa" };
+			}).when(mockInstance).getArguments();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getTargetServiceUniqueName();
+			Mockito.doAnswer((stubInvo) -> {
+				return "DemoService";
+			}).when(mockInstance).getServiceName();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				mockInstance.setObjectAttachment(key, value);
+				return null;
+			}).when(mockInstance).setAttachment(Mockito.any(String.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object defaultValue = stubInvo.getArgument(1);
+				Object result = mockFieldVariableAttachments[0].get(key);
+				if (result == null) {
+					return defaultValue;
+				}
+				return result;
+			}).when(mockInstance).getObjectAttachment(Mockito.any(String.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getInvoker();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).get(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				return new Class[] { String.class };
+			}).when(mockInstance).getParameterTypes();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				mockFieldVariableAttachments[0].put(key, value);
+				return null;
+			}).when(mockInstance).setObjectAttachment(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				return "echo";
+			}).when(mockInstance).getMethodName();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getAttributes();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				return mockFieldVariableAttachments[0].get(key);
+			}).when(mockInstance).getObjectAttachment(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				String defaultValue = stubInvo.getArgument(1);
+				return (String) mockInstance.getObjectAttachment(key, defaultValue);
+			}).when(mockInstance).getAttachment(Mockito.any(String.class), Mockito.any(String.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
 }

@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.dubbo.remoting.etcd.Constants.SESSION_TIMEOUT_KEY;
+import org.mockito.Mockito;
 
 /**
  * Unit test for etcd config center support
@@ -65,10 +66,70 @@ public class EtcdDynamicConfigurationTest {
     @Test
     public void testAddListener() throws Exception {
         CountDownLatch latch = new CountDownLatch(4);
-        TestListener listener1 = new TestListener(latch);
-        TestListener listener2 = new TestListener(latch);
-        TestListener listener3 = new TestListener(latch);
-        TestListener listener4 = new TestListener(latch);
+        ConfigurationListener listener1 = Mockito.spy(ConfigurationListener.class);
+		String[] listener1Value = new String[1];
+		Map<String, Integer> listener1CountMap = new HashMap<>();
+		CountDownLatch[] listener1Latch = new CountDownLatch[1];
+		listener1Latch[0] = latch;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				ConfigChangedEvent event = stubInvo.getArgument(0);
+				Integer count = listener1CountMap.computeIfAbsent(event.getKey(), k -> 0);
+				listener1CountMap.put(event.getKey(), ++count);
+				listener1Value[0] = event.getContent();
+				listener1Latch[0].countDown();
+				return null;
+			}).when(listener1).process(Mockito.any());
+		} catch (Exception exception) {
+		}
+        ConfigurationListener listener2 = Mockito.spy(ConfigurationListener.class);
+		String[] listener2Value = new String[1];
+		Map<String, Integer> listener2CountMap = new HashMap<>();
+		CountDownLatch[] listener2Latch = new CountDownLatch[1];
+		listener2Latch[0] = latch;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				ConfigChangedEvent event = stubInvo.getArgument(0);
+				Integer count = listener2CountMap.computeIfAbsent(event.getKey(), k -> 0);
+				listener2CountMap.put(event.getKey(), ++count);
+				listener2Value[0] = event.getContent();
+				listener2Latch[0].countDown();
+				return null;
+			}).when(listener2).process(Mockito.any());
+		} catch (Exception exception) {
+		}
+        ConfigurationListener listener3 = Mockito.spy(ConfigurationListener.class);
+		String[] listener3Value = new String[1];
+		Map<String, Integer> listener3CountMap = new HashMap<>();
+		CountDownLatch[] listener3Latch = new CountDownLatch[1];
+		listener3Latch[0] = latch;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				ConfigChangedEvent event = stubInvo.getArgument(0);
+				Integer count = listener3CountMap.computeIfAbsent(event.getKey(), k -> 0);
+				listener3CountMap.put(event.getKey(), ++count);
+				listener3Value[0] = event.getContent();
+				listener3Latch[0].countDown();
+				return null;
+			}).when(listener3).process(Mockito.any());
+		} catch (Exception exception) {
+		}
+        ConfigurationListener listener4 = Mockito.spy(ConfigurationListener.class);
+		String[] listener4Value = new String[1];
+		Map<String, Integer> listener4CountMap = new HashMap<>();
+		CountDownLatch[] listener4Latch = new CountDownLatch[1];
+		listener4Latch[0] = latch;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				ConfigChangedEvent event = stubInvo.getArgument(0);
+				Integer count = listener4CountMap.computeIfAbsent(event.getKey(), k -> 0);
+				listener4CountMap.put(event.getKey(), ++count);
+				listener4Value[0] = event.getContent();
+				listener4Latch[0].countDown();
+				return null;
+			}).when(listener4).process(Mockito.any());
+		} catch (Exception exception) {
+		}
         config.addListener("AService.configurators", listener1);
         config.addListener("AService.configurators", listener2);
         config.addListener("testapp.tagrouters", listener3);
@@ -83,15 +144,15 @@ public class EtcdDynamicConfigurationTest {
         Thread.sleep(1000);
 
         Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
-        Assert.assertEquals(1, listener1.getCount("/dubbo/config/AService/configurators"));
-        Assert.assertEquals(1, listener2.getCount("/dubbo/config/AService/configurators"));
-        Assert.assertEquals(1, listener3.getCount("/dubbo/config/testapp/tagrouters"));
-        Assert.assertEquals(1, listener4.getCount("/dubbo/config/testapp/tagrouters"));
+        Assert.assertEquals(1, (int) listener1CountMap.get("/dubbo/config/AService/configurators"));
+        Assert.assertEquals(1, (int) listener2CountMap.get("/dubbo/config/AService/configurators"));
+        Assert.assertEquals(1, (int) listener3CountMap.get("/dubbo/config/testapp/tagrouters"));
+        Assert.assertEquals(1, (int) listener4CountMap.get("/dubbo/config/testapp/tagrouters"));
 
-        Assert.assertEquals("new value1", listener1.getValue());
-        Assert.assertEquals("new value1", listener2.getValue());
-        Assert.assertEquals("new value2", listener3.getValue());
-        Assert.assertEquals("new value2", listener4.getValue());
+        Assert.assertEquals("new value1", listener1Value[0]);
+        Assert.assertEquals("new value1", listener2Value[0]);
+        Assert.assertEquals("new value2", listener3Value[0]);
+        Assert.assertEquals("new value2", listener4Value[0]);
     }
 
     private class TestListener implements ConfigurationListener {

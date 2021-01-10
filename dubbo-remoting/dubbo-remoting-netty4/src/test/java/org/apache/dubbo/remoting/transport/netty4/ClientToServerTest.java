@@ -28,19 +28,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CompletableFuture;
+import org.mockito.Mockito;
+import org.apache.dubbo.remoting.transport.netty4.World;
+import org.apache.dubbo.remoting.transport.netty4.WorldHandler;
 
 /**
  * ClientToServer
  */
 public abstract class ClientToServerTest {
 
-    protected static final String LOCALHOST = "127.0.0.1";
+
+	protected static final String LOCALHOST = "127.0.0.1";
 
     protected ExchangeServer server;
 
     protected ExchangeChannel client;
 
-    protected WorldHandler handler = new WorldHandler();
+    protected Replier<World> handler = new WorldHandler();
 
     protected abstract ExchangeServer newServer(int port, Replier<?> receiver) throws RemotingException;
 
