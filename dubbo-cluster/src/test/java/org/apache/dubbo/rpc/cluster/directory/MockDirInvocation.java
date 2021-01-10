@@ -47,8 +47,38 @@ class MockDirInvocation {
 		mockFieldVariableAttachments[0].put(TIMEOUT_KEY, "1000");
 		try {
 			Mockito.doAnswer((stubInvo) -> {
+				return new Class[] { String.class };
+			}).when(mockInstance).getParameterTypes();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				String defaultValue = stubInvo.getArgument(1);
+				return (String) mockInstance.getObjectAttachment(key, defaultValue);
+			}).when(mockInstance).getAttachment(Mockito.any(String.class), Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				mockFieldVariableAttachments[0].put(key, value);
 				return null;
-			}).when(mockInstance).getProtocolServiceKey();
+			}).when(mockInstance).setObjectAttachment(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				String value = stubInvo.getArgument(1);
+				mockInstance.setObjectAttachmentIfAbsent(key, value);
+				return null;
+			}).when(mockInstance).setAttachmentIfAbsent(Mockito.any(String.class), Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableAttachments[0];
+			}).when(mockInstance).getObjectAttachments();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				return mockFieldVariableAttachments[0].get(key);
+			}).when(mockInstance).getObjectAttachment(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).put(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getTargetServiceUniqueName();
 			Mockito.doAnswer((stubInvo) -> {
 				String key = stubInvo.getArgument(0);
 				Object value = stubInvo.getArgument(1);
@@ -58,18 +88,11 @@ class MockDirInvocation {
 				return null;
 			}).when(mockInstance).setObjectAttachmentIfAbsent(Mockito.any(), Mockito.any());
 			Mockito.doAnswer((stubInvo) -> {
-				String key = stubInvo.getArgument(0);
-				return (String) mockInstance.getObjectAttachment(key);
-			}).when(mockInstance).getAttachment(Mockito.any(String.class));
+				return null;
+			}).when(mockInstance).getProtocolServiceKey();
 			Mockito.doAnswer((stubInvo) -> {
 				return null;
-			}).when(mockInstance).put(Mockito.any(), Mockito.any());
-			Mockito.doAnswer((stubInvo) -> {
-				String key = stubInvo.getArgument(0);
-				Object value = stubInvo.getArgument(1);
-				mockInstance.setObjectAttachmentIfAbsent(key, value);
-				return null;
-			}).when(mockInstance).setAttachmentIfAbsent(Mockito.any(String.class), Mockito.any(Object.class));
+			}).when(mockInstance).getInvoker();
 			Mockito.doAnswer((stubInvo) -> {
 				String key = stubInvo.getArgument(0);
 				String value = stubInvo.getArgument(1);
@@ -77,32 +100,11 @@ class MockDirInvocation {
 				return null;
 			}).when(mockInstance).setAttachment(Mockito.any(String.class), Mockito.any(String.class));
 			Mockito.doAnswer((stubInvo) -> {
-				String key = stubInvo.getArgument(0);
-				String value = stubInvo.getArgument(1);
-				mockInstance.setObjectAttachmentIfAbsent(key, value);
 				return null;
-			}).when(mockInstance).setAttachmentIfAbsent(Mockito.any(String.class), Mockito.any(String.class));
-			Mockito.doAnswer((stubInvo) -> {
-				return new AttachmentsAdapter.ObjectToStringMap(mockFieldVariableAttachments[0]);
-			}).when(mockInstance).getAttachments();
-			Mockito.doAnswer((stubInvo) -> {
-				return mockFieldVariableAttachments[0];
-			}).when(mockInstance).getObjectAttachments();
-			Mockito.doAnswer((stubInvo) -> {
-				return new Object[] { "aa" };
-			}).when(mockInstance).getArguments();
+			}).when(mockInstance).getAttributes();
 			Mockito.doAnswer((stubInvo) -> {
 				return null;
-			}).when(mockInstance).getTargetServiceUniqueName();
-			Mockito.doAnswer((stubInvo) -> {
-				return "DemoService";
-			}).when(mockInstance).getServiceName();
-			Mockito.doAnswer((stubInvo) -> {
-				String key = stubInvo.getArgument(0);
-				Object value = stubInvo.getArgument(1);
-				mockInstance.setObjectAttachment(key, value);
-				return null;
-			}).when(mockInstance).setAttachment(Mockito.any(String.class), Mockito.any(Object.class));
+			}).when(mockInstance).get(Mockito.any());
 			Mockito.doAnswer((stubInvo) -> {
 				String key = stubInvo.getArgument(0);
 				Object defaultValue = stubInvo.getArgument(1);
@@ -113,35 +115,33 @@ class MockDirInvocation {
 				return result;
 			}).when(mockInstance).getObjectAttachment(Mockito.any(String.class), Mockito.any(Object.class));
 			Mockito.doAnswer((stubInvo) -> {
-				return null;
-			}).when(mockInstance).getInvoker();
+				return "DemoService";
+			}).when(mockInstance).getServiceName();
 			Mockito.doAnswer((stubInvo) -> {
-				return null;
-			}).when(mockInstance).get(Mockito.any());
-			Mockito.doAnswer((stubInvo) -> {
-				return new Class[] { String.class };
-			}).when(mockInstance).getParameterTypes();
+				return new Object[] { "aa" };
+			}).when(mockInstance).getArguments();
 			Mockito.doAnswer((stubInvo) -> {
 				String key = stubInvo.getArgument(0);
 				Object value = stubInvo.getArgument(1);
-				mockFieldVariableAttachments[0].put(key, value);
+				mockInstance.setObjectAttachment(key, value);
 				return null;
-			}).when(mockInstance).setObjectAttachment(Mockito.any(), Mockito.any());
+			}).when(mockInstance).setAttachment(Mockito.any(String.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				mockInstance.setObjectAttachmentIfAbsent(key, value);
+				return null;
+			}).when(mockInstance).setAttachmentIfAbsent(Mockito.any(String.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				return (String) mockInstance.getObjectAttachment(key);
+			}).when(mockInstance).getAttachment(Mockito.any(String.class));
 			Mockito.doAnswer((stubInvo) -> {
 				return "echo";
 			}).when(mockInstance).getMethodName();
 			Mockito.doAnswer((stubInvo) -> {
-				return null;
-			}).when(mockInstance).getAttributes();
-			Mockito.doAnswer((stubInvo) -> {
-				String key = stubInvo.getArgument(0);
-				return mockFieldVariableAttachments[0].get(key);
-			}).when(mockInstance).getObjectAttachment(Mockito.any(String.class));
-			Mockito.doAnswer((stubInvo) -> {
-				String key = stubInvo.getArgument(0);
-				String defaultValue = stubInvo.getArgument(1);
-				return (String) mockInstance.getObjectAttachment(key, defaultValue);
-			}).when(mockInstance).getAttachment(Mockito.any(String.class), Mockito.any(String.class));
+				return new AttachmentsAdapter.ObjectToStringMap(mockFieldVariableAttachments[0]);
+			}).when(mockInstance).getAttachments();
 		} catch (Exception exception) {
 		}
 		return mockInstance;
