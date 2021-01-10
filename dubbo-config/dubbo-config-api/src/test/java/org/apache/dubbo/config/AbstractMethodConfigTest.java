@@ -16,111 +16,116 @@
  */
 package org.apache.dubbo.config;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.sameInstance;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 public class AbstractMethodConfigTest {
-    @Test
-    public void testTimeout() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setTimeout(10);
-        assertThat(methodConfig.getTimeout(), equalTo(10));
-    }
+	static public AbstractMethodConfig mockAbstractMethodConfig1() {
+		AbstractMethodConfig mockInstance = Mockito.spy(AbstractMethodConfig.class);
+		try {
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    @Test
-    public void testForks() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setForks(10);
-        assertThat(methodConfig.getForks(), equalTo(10));
-    }
+	@Test
+	public void testTimeout() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setTimeout(10);
+		assertThat(methodConfig.getTimeout(), equalTo(10));
+	}
 
-    @Test
-    public void testRetries() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setRetries(3);
-        assertThat(methodConfig.getRetries(), equalTo(3));
-    }
+	@Test
+	public void testForks() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setForks(10);
+		assertThat(methodConfig.getForks(), equalTo(10));
+	}
 
-    @Test
-    public void testLoadbalance() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setLoadbalance("mockloadbalance");
-        assertThat(methodConfig.getLoadbalance(), equalTo("mockloadbalance"));
-    }
+	@Test
+	public void testRetries() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setRetries(3);
+		assertThat(methodConfig.getRetries(), equalTo(3));
+	}
 
-    @Test
-    public void testAsync() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setAsync(true);
-        assertThat(methodConfig.isAsync(), is(true));
-    }
+	@Test
+	public void testLoadbalance() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setLoadbalance("mockloadbalance");
+		assertThat(methodConfig.getLoadbalance(), equalTo("mockloadbalance"));
+	}
 
-    @Test
-    public void testActives() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setActives(10);
-        assertThat(methodConfig.getActives(), equalTo(10));
-    }
+	@Test
+	public void testAsync() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setAsync(true);
+		assertThat(methodConfig.isAsync(), is(true));
+	}
 
-    @Test
-    public void testSent() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setSent(true);
-        assertThat(methodConfig.getSent(), is(true));
-    }
+	@Test
+	public void testActives() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setActives(10);
+		assertThat(methodConfig.getActives(), equalTo(10));
+	}
 
-    @Test
-    public void testMock() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setMock((Boolean) null);
-        assertThat(methodConfig.getMock(), isEmptyOrNullString());
-        methodConfig.setMock(true);
-        assertThat(methodConfig.getMock(), equalTo("true"));
-        methodConfig.setMock("return null");
-        assertThat(methodConfig.getMock(), equalTo("return null"));
-        methodConfig.setMock("mock");
-        assertThat(methodConfig.getMock(), equalTo("mock"));
-    }
+	@Test
+	public void testSent() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setSent(true);
+		assertThat(methodConfig.getSent(), is(true));
+	}
 
-    @Test
-    public void testMerger() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setMerger("merger");
-        assertThat(methodConfig.getMerger(), equalTo("merger"));
-    }
+	@Test
+	public void testMock() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setMock((Boolean) null);
+		assertThat(methodConfig.getMock(), isEmptyOrNullString());
+		methodConfig.setMock(true);
+		assertThat(methodConfig.getMock(), equalTo("true"));
+		methodConfig.setMock("return null");
+		assertThat(methodConfig.getMock(), equalTo("return null"));
+		methodConfig.setMock("mock");
+		assertThat(methodConfig.getMock(), equalTo("mock"));
+	}
 
-    @Test
-    public void testCache() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setCache("cache");
-        assertThat(methodConfig.getCache(), equalTo("cache"));
-    }
+	@Test
+	public void testMerger() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setMerger("merger");
+		assertThat(methodConfig.getMerger(), equalTo("merger"));
+	}
 
-    @Test
-    public void testValidation() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        methodConfig.setValidation("validation");
-        assertThat(methodConfig.getValidation(), equalTo("validation"));
-    }
+	@Test
+	public void testCache() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setCache("cache");
+		assertThat(methodConfig.getCache(), equalTo("cache"));
+	}
 
-    @Test
-    public void testParameters() throws Exception {
-        MethodConfig methodConfig = new MethodConfig();
-        Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put("key", "value");
-        methodConfig.setParameters(parameters);
-        assertThat(methodConfig.getParameters(), sameInstance(parameters));
-    }
+	@Test
+	public void testValidation() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		methodConfig.setValidation("validation");
+		assertThat(methodConfig.getValidation(), equalTo("validation"));
+	}
 
-    private static class MethodConfig extends AbstractMethodConfig {
-
-    }
+	@Test
+	public void testParameters() throws Exception {
+		AbstractMethodConfig methodConfig = AbstractMethodConfigTest.mockAbstractMethodConfig1();
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put("key", "value");
+		methodConfig.setParameters(parameters);
+		assertThat(methodConfig.getParameters(), sameInstance(parameters));
+	}
 }

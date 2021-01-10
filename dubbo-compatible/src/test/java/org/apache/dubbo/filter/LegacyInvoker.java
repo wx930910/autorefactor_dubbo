@@ -16,59 +16,47 @@
  */
 package org.apache.dubbo.filter;
 
-
 import org.apache.dubbo.rpc.AppResponse;
 import org.apache.dubbo.service.DemoService;
+import org.mockito.Mockito;
 
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
-import com.alibaba.dubbo.rpc.RpcException;
 
-public class LegacyInvoker<T> implements Invoker<T> {
+public class LegacyInvoker {
 
-    URL url;
-    Class<T> type;
-    boolean hasException = false;
-
-    public LegacyInvoker(URL url) {
-        this.url = url;
-        type = (Class<T>) DemoService.class;
-    }
-
-    public LegacyInvoker(URL url, boolean hasException) {
-        this.url = url;
-        type = (Class<T>) DemoService.class;
-        this.hasException = hasException;
-    }
-
-    @Override
-    public Class<T> getInterface() {
-        return type;
-    }
-
-    public URL getUrl() {
-        return url;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return false;
-    }
-
-    public Result invoke(Invocation invocation) throws RpcException {
-        AppResponse result = new AppResponse();
-        if (!hasException) {
-            result.setValue("alibaba");
-        } else {
-            result.setException(new RuntimeException("mocked exception"));
-        }
-        return new Result.CompatibleResult(result);
-    }
-
-    @Override
-    public void destroy() {
-    }
+	static public Invoker<FilterTest> mockInvoker1(URL url) {
+		URL[] mockFieldVariableUrl = new URL[1];
+		Class<FilterTest>[] mockFieldVariableType = new Class[1];
+		boolean mockFieldVariableHasException = false;
+		Invoker<FilterTest> mockInstance = Mockito.spy(Invoker.class);
+		mockFieldVariableUrl[0] = url;
+		mockFieldVariableType[0] = (Class) DemoService.class;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				AppResponse result = new AppResponse();
+				if (!mockFieldVariableHasException) {
+					result.setValue("alibaba");
+				} else {
+					result.setException(new RuntimeException("mocked exception"));
+				}
+				return new Result.CompatibleResult(result);
+			}).when(mockInstance).invoke(Mockito.any(Invocation.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableUrl[0];
+			}).when(mockInstance).getUrl();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableType[0];
+			}).when(mockInstance).getInterface();
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).isAvailable();
+			Mockito.doNothing().when(mockInstance).destroy();
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
 }

@@ -17,26 +17,32 @@
 
 package org.apache.dubbo.cache;
 
-import com.alibaba.dubbo.cache.Cache;
-import com.alibaba.dubbo.common.URL;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class MyCache implements Cache {
+import org.mockito.Mockito;
 
-    private Map<Object, Object> map = new HashMap<Object, Object>();
+import com.alibaba.dubbo.cache.Cache;
+import com.alibaba.dubbo.common.URL;
 
-    public MyCache(URL url) {
-    }
+public class MyCache {
 
-    @Override
-    public void put(Object key, Object value) {
-        map.put(key, value);
-    }
-
-    @Override
-    public Object get(Object key) {
-        return map.get(key);
-    }
+	static public Cache mockCache1(URL url) {
+		Map<Object, Object> mockFieldVariableMap = new HashMap<Object, Object>();
+		Cache mockInstance = Mockito.spy(Cache.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				Object key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				mockFieldVariableMap.put(key, value);
+				return null;
+			}).when(mockInstance).put(Mockito.any(), Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				Object key = stubInvo.getArgument(0);
+				return mockFieldVariableMap.get(key);
+			}).when(mockInstance).get(Mockito.any());
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 }
