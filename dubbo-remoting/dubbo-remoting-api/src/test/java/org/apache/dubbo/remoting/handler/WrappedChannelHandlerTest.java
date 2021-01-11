@@ -21,20 +21,69 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.lang.reflect.Field;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.utils.ConcurrentHashSet;
 import org.apache.dubbo.remoting.Channel;
+import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.transport.dispatcher.WrappedChannelHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class WrappedChannelHandlerTest {
+	public ChannelHandler mockChannelHandler1(boolean invokeWithBizError) {
+		ConcurrentHashSet<Channel> mockFieldVariableChannels = new ConcurrentHashSet<Channel>();
+		boolean[] mockFieldVariableInvokeWithBizError = new boolean[1];
+		ChannelHandler mockInstance = Mockito.spy(ChannelHandler.class);
+		mockFieldVariableInvokeWithBizError[0] = invokeWithBizError;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				Throwable exception = stubInvo.getArgument(1);
+				throw new RemotingException(channel, exception);
+			}).when(mockInstance).caught(Mockito.any(Channel.class), Mockito.any(Throwable.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				if (mockFieldVariableInvokeWithBizError[0]) {
+					throw new RemotingException(channel, "test received biz error");
+				}
+				sleep(20);
+				return null;
+			}).when(mockInstance).received(Mockito.any(Channel.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				Object message = stubInvo.getArgument(1);
+				channel.send(message);
+				return null;
+			}).when(mockInstance).sent(Mockito.any(Channel.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				if (mockFieldVariableInvokeWithBizError[0]) {
+					throw new RemotingException(channel, "test disconnect biz error");
+				}
+				sleep(20);
+				return null;
+			}).when(mockInstance).disconnected(Mockito.any(Channel.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				if (mockFieldVariableInvokeWithBizError[0]) {
+					throw new RemotingException(channel, "test connect biz error");
+				}
+				sleep(20);
+				return null;
+			}).when(mockInstance).connected(Mockito.any(Channel.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
+
 	WrappedChannelHandler handler;
 	URL url = URL.valueOf("test://10.20.30.40:1234");
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		handler = new WrappedChannelHandler(new BizChannelHander(true), url);
+		handler = new WrappedChannelHandler(mockChannelHandler1(true), url);
 	}
 
 	@Test
@@ -77,63 +126,26 @@ public class WrappedChannelHandlerTest {
 
 	@Test
 	public void test_Connect_Biz_Error() throws RemotingException {
-		Assertions.assertThrows(RemotingException.class, () -> handler.connected(new MockedChannel()));
+		Assertions.assertThrows(RemotingException.class, () -> handler.connected(MockedChannel.mockChannel1()));
 	}
 
 	@Test
 	public void test_Disconnect_Biz_Error() throws RemotingException {
-		Assertions.assertThrows(RemotingException.class, () -> handler.disconnected(new MockedChannel()));
+		Assertions.assertThrows(RemotingException.class, () -> handler.disconnected(MockedChannel.mockChannel1()));
 	}
 
 	@Test
 	public void test_MessageReceived_Biz_Error() throws RemotingException {
-		Assertions.assertThrows(RemotingException.class, () -> handler.received(new MockedChannel(), ""));
+		Assertions.assertThrows(RemotingException.class, () -> handler.received(MockedChannel.mockChannel1(), ""));
 	}
 
 	@Test
 	public void test_Caught_Biz_Error() throws RemotingException {
 		try {
-			handler.caught(new MockedChannel(), new BizException());
+			handler.caught(MockedChannel.mockChannel1(), new BizException());
 			fail();
 		} catch (Exception e) {
 			Assertions.assertEquals(BizException.class, e.getCause().getClass());
-		}
-	}
-
-	class BizChannelHander extends MockedChannelHandler {
-		private boolean invokeWithBizError;
-
-		public BizChannelHander(boolean invokeWithBizError) {
-			super();
-			this.invokeWithBizError = invokeWithBizError;
-		}
-
-		public BizChannelHander() {
-			super();
-		}
-
-		@Override
-		public void connected(Channel channel) throws RemotingException {
-			if (invokeWithBizError) {
-				throw new RemotingException(channel, "test connect biz error");
-			}
-			sleep(20);
-		}
-
-		@Override
-		public void disconnected(Channel channel) throws RemotingException {
-			if (invokeWithBizError) {
-				throw new RemotingException(channel, "test disconnect biz error");
-			}
-			sleep(20);
-		}
-
-		@Override
-		public void received(Channel channel, Object message) throws RemotingException {
-			if (invokeWithBizError) {
-				throw new RemotingException(channel, "test received biz error");
-			}
-			sleep(20);
 		}
 	}
 

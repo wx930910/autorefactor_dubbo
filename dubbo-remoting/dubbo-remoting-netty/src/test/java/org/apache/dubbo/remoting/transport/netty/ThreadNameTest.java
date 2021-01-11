@@ -20,117 +20,142 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.ChannelHandler;
-import org.apache.dubbo.remoting.RemotingException;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class ThreadNameTest {
 
-    private NettyServer server;
-    private NettyClient client;
+	private void output(String method, boolean[] client) {
+		System.out.println(
+				Thread.currentThread().getName() + " " + (client[0] ? "client " + method : "server " + method));
+	}
 
-    private URL serverURL;
-    private URL clientURL;
+	private void checkThreadName(String[] message, boolean success) {
+		if (!success) {
+			success = Thread.currentThread().getName().matches(message[0]);
+		}
+	}
 
-    private ThreadNameVerifyHandler serverHandler;
-    private ThreadNameVerifyHandler clientHandler;
+	String[] clientHandlerMessage = new String[1];
 
-    private static String serverRegex = "DubboServerHandler\\-localhost:(\\d+)\\-thread\\-(\\d+)";
-    private static String clientRegex = "DubboClientHandler\\-localhost:(\\d+)\\-thread\\-(\\d+)";
+	boolean clientHandlerSuccess = false;
 
-    @BeforeEach
-    public void before() throws Exception {
-        int port = NetUtils.getAvailablePort();
-        serverURL = URL.valueOf("telnet://localhost?side=provider").setPort(port);
-        clientURL = URL.valueOf("telnet://localhost?side=consumer").setPort(port);
+	boolean[] clientHandlerClient = new boolean[1];
 
-        serverHandler = new ThreadNameVerifyHandler(serverRegex, false);
-        clientHandler = new ThreadNameVerifyHandler(clientRegex, true);
+	String[] serverHandlerMessage = new String[1];
 
-        server = new NettyServer(serverURL, serverHandler);
-        client = new NettyClient(clientURL, clientHandler);
-    }
+	boolean serverHandlerSuccess = false;
 
-    @AfterEach
-    public void after() throws Exception {
-        if (client != null) {
-            client.close();
-            client = null;
-        }
+	boolean[] serverHandlerClient = new boolean[1];
 
-        if (server != null) {
-            server.close();
-            server = null;
-        }
-    }
+	private NettyServer server;
+	private NettyClient client;
 
-    @Test
-    public void testThreadName() throws Exception {
-        client.send("hello");
-        Thread.sleep(1000L * 5L);
-        if (!serverHandler.isSuccess() || !clientHandler.isSuccess()) {
-            Assertions.fail();
-        }
-    }
+	private URL serverURL;
+	private URL clientURL;
 
-    class ThreadNameVerifyHandler implements ChannelHandler {
+	private ChannelHandler serverHandler;
+	private ChannelHandler clientHandler;
 
-        private String message;
-        private boolean success;
-        private boolean client;
+	private static String serverRegex = "DubboServerHandler\\-localhost:(\\d+)\\-thread\\-(\\d+)";
+	private static String clientRegex = "DubboClientHandler\\-localhost:(\\d+)\\-thread\\-(\\d+)";
 
-        ThreadNameVerifyHandler(String msg, boolean client) {
-            message = msg;
-            this.client = client;
-        }
+	@BeforeEach
+	public void before() throws Exception {
+		int port = NetUtils.getAvailablePort();
+		serverURL = URL.valueOf("telnet://localhost?side=provider").setPort(port);
+		clientURL = URL.valueOf("telnet://localhost?side=consumer").setPort(port);
 
-        public boolean isSuccess() {
-            return success;
-        }
+		serverHandler = Mockito.spy(ChannelHandler.class);
+		serverHandlerMessage[0] = serverRegex;
+		serverHandlerClient[0] = false;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				output("connected", serverHandlerClient);
+				checkThreadName(serverHandlerMessage, serverHandlerSuccess);
+				return null;
+			}).when(serverHandler).connected(Mockito.any(Channel.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("caught", serverHandlerClient);
+				checkThreadName(serverHandlerMessage, serverHandlerSuccess);
+				return null;
+			}).when(serverHandler).caught(Mockito.any(Channel.class), Mockito.any(Throwable.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("sent", serverHandlerClient);
+				checkThreadName(serverHandlerMessage, serverHandlerSuccess);
+				return null;
+			}).when(serverHandler).sent(Mockito.any(Channel.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("disconnected", serverHandlerClient);
+				checkThreadName(serverHandlerMessage, serverHandlerSuccess);
+				return null;
+			}).when(serverHandler).disconnected(Mockito.any(Channel.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("received", serverHandlerClient);
+				checkThreadName(serverHandlerMessage, serverHandlerSuccess);
+				return null;
+			}).when(serverHandler).received(Mockito.any(Channel.class), Mockito.any(Object.class));
+		} catch (Exception exception) {
+		}
+		clientHandler = Mockito.spy(ChannelHandler.class);
+		clientHandlerMessage[0] = clientRegex;
+		clientHandlerClient[0] = true;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				output("connected", clientHandlerClient);
+				checkThreadName(clientHandlerMessage, clientHandlerSuccess);
+				return null;
+			}).when(clientHandler).connected(Mockito.any(Channel.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("caught", clientHandlerClient);
+				checkThreadName(clientHandlerMessage, clientHandlerSuccess);
+				return null;
+			}).when(clientHandler).caught(Mockito.any(Channel.class), Mockito.any(Throwable.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("sent", clientHandlerClient);
+				checkThreadName(clientHandlerMessage, clientHandlerSuccess);
+				return null;
+			}).when(clientHandler).sent(Mockito.any(Channel.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("disconnected", clientHandlerClient);
+				checkThreadName(clientHandlerMessage, clientHandlerSuccess);
+				return null;
+			}).when(clientHandler).disconnected(Mockito.any(Channel.class));
+			Mockito.doAnswer((stubInvo) -> {
+				output("received", clientHandlerClient);
+				checkThreadName(clientHandlerMessage, clientHandlerSuccess);
+				return null;
+			}).when(clientHandler).received(Mockito.any(Channel.class), Mockito.any(Object.class));
+		} catch (Exception exception) {
+		}
 
-        private void checkThreadName() {
-            if (!success) {
-                success = Thread.currentThread().getName().matches(message);
-            }
-        }
+		server = new NettyServer(serverURL, serverHandler);
+		client = new NettyClient(clientURL, clientHandler);
+	}
 
-        private void output(String method) {
-            System.out.println(Thread.currentThread().getName()
-                    + " " + (client ? "client " + method : "server " + method));
-        }
+	@AfterEach
+	public void after() throws Exception {
+		if (client != null) {
+			client.close();
+			client = null;
+		}
 
-        @Override
-        public void connected(Channel channel) throws RemotingException {
-            output("connected");
-            checkThreadName();
-        }
+		if (server != null) {
+			server.close();
+			server = null;
+		}
+	}
 
-        @Override
-        public void disconnected(Channel channel) throws RemotingException {
-            output("disconnected");
-            checkThreadName();
-        }
-
-        @Override
-        public void sent(Channel channel, Object message) throws RemotingException {
-            output("sent");
-            checkThreadName();
-        }
-
-        @Override
-        public void received(Channel channel, Object message) throws RemotingException {
-            output("received");
-            checkThreadName();
-        }
-
-        @Override
-        public void caught(Channel channel, Throwable exception) throws RemotingException {
-            output("caught");
-            checkThreadName();
-        }
-    }
+	@Test
+	public void testThreadName() throws Exception {
+		client.send("hello");
+		Thread.sleep(1000L * 5L);
+		if (!serverHandlerSuccess || !clientHandlerSuccess) {
+			Assertions.fail();
+		}
+	}
 
 }

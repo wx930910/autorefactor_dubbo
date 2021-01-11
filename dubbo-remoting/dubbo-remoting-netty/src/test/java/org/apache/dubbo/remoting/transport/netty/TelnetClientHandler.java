@@ -16,21 +16,24 @@
  */
 package org.apache.dubbo.remoting.transport.netty;
 
-import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.exchange.ExchangeChannel;
 import org.apache.dubbo.remoting.exchange.support.Replier;
+import org.mockito.Mockito;
 
 /**
- * Date: 4/28/11
- * Time: 11:15 AM
+ * Date: 4/28/11 Time: 11:15 AM
  */
-public class TelnetClientHandler implements Replier<String> {
+public class TelnetClientHandler {
 
-    public Class<String> interest() {
-        return String.class;
-    }
-
-    public Object reply(ExchangeChannel channel, String msg) throws RemotingException {
-        return msg;
-    }
+	static public Replier<String> mockReplier1() {
+		Replier<String> mockInstance = Mockito.spy(Replier.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				String msg = stubInvo.getArgument(1);
+				return msg;
+			}).when(mockInstance).reply(Mockito.any(ExchangeChannel.class), Mockito.any(String.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 }

@@ -16,22 +16,6 @@
  */
 package org.apache.dubbo.registry.support;
 
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.utils.CollectionUtils;
-import org.apache.dubbo.config.ApplicationConfig;
-import org.apache.dubbo.metadata.WritableMetadataService;
-import org.apache.dubbo.registry.NotifyListener;
-import org.apache.dubbo.registry.client.ServiceDiscoveryRegistry;
-import org.apache.dubbo.rpc.model.ApplicationModel;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSortedSet;
 import static org.apache.dubbo.common.URL.valueOf;
@@ -45,6 +29,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.utils.CollectionUtils;
+import org.apache.dubbo.config.ApplicationConfig;
+import org.apache.dubbo.metadata.WritableMetadataService;
+import org.apache.dubbo.registry.NotifyListener;
+import org.apache.dubbo.registry.client.ServiceDiscoveryRegistry;
+import org.apache.dubbo.rpc.model.ApplicationModel;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 /**
  * {@link ServiceDiscoveryRegistry} Test
  *
@@ -52,133 +52,140 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class ServiceOrientedRegistryTest {
 
-    private static final URL registryURL = valueOf("in-memory://localhost:12345")
-            .addParameter(REGISTRY_TYPE_KEY, SERVICE_REGISTRY_TYPE)
-            .addParameter(ID_KEY, "org.apache.dubbo.config.RegistryConfig#0")
-            .addParameter(SUBSCRIBED_SERVICE_NAMES_KEY, "a, b , c,d,e ,");
+	public NotifyListener mockNotifyListener1() {
+		List<URL> mockFieldVariableCache = new LinkedList<>();
+		NotifyListener mockInstance = Mockito.spy(NotifyListener.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				List<URL> urls = stubInvo.getArgument(0);
+				mockFieldVariableCache.addAll(urls);
+				return null;
+			}).when(mockInstance).notify(Mockito.any());
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    private static final String SERVICE_INTERFACE = "org.apache.dubbo.metadata.MetadataService";
+	List<URL> notifyListenerCache = new LinkedList<>();
 
-    private static final String GROUP = "dubbo-provider";
+	private static final URL registryURL = valueOf("in-memory://localhost:12345")
+			.addParameter(REGISTRY_TYPE_KEY, SERVICE_REGISTRY_TYPE)
+			.addParameter(ID_KEY, "org.apache.dubbo.config.RegistryConfig#0")
+			.addParameter(SUBSCRIBED_SERVICE_NAMES_KEY, "a, b , c,d,e ,");
 
-    private static final String VERSION = "1.0.0";
+	private static final String SERVICE_INTERFACE = "org.apache.dubbo.metadata.MetadataService";
 
-    private static URL url = valueOf("dubbo://192.168.0.102:20880/" + SERVICE_INTERFACE +
-            "?&application=" + GROUP +
-            "&interface=" + SERVICE_INTERFACE +
-            "&group=" + GROUP +
-            "&version=" + VERSION +
-            "&methods=getAllServiceKeys,getServiceRestMetadata,getExportedURLs,getAllExportedURLs" +
-            "&side=" + PROVIDER_SIDE
-    );
+	private static final String GROUP = "dubbo-provider";
 
-    private static URL url2 = url.setProtocol("rest");
+	private static final String VERSION = "1.0.0";
 
-    private WritableMetadataService metadataService;
+	private static URL url = valueOf("dubbo://192.168.0.102:20880/" + SERVICE_INTERFACE + "?&application=" + GROUP
+			+ "&interface=" + SERVICE_INTERFACE + "&group=" + GROUP + "&version=" + VERSION
+			+ "&methods=getAllServiceKeys,getServiceRestMetadata,getExportedURLs,getAllExportedURLs" + "&side="
+			+ PROVIDER_SIDE);
 
-    private ServiceDiscoveryRegistry registry;
+	private static URL url2 = url.setProtocol("rest");
 
-    private NotifyListener notifyListener;
+	private WritableMetadataService metadataService;
 
-    @BeforeEach
-    public void init() {
-        registry = ServiceDiscoveryRegistry.create(registryURL);
-        metadataService = WritableMetadataService.getDefaultExtension();
-        notifyListener = new MyNotifyListener();
-        ApplicationModel.getConfigManager().setApplication(new ApplicationConfig("Test"));
-    }
+	private ServiceDiscoveryRegistry registry;
 
-    @Test
-    public void testSupports() {
-        assertTrue(ServiceDiscoveryRegistry.supports(registryURL));
-    }
+	private NotifyListener notifyListener;
 
-    @Test
-    public void testCreate() {
-        assertNotNull(registry);
-    }
+	@BeforeEach
+	public void init() {
+		registry = ServiceDiscoveryRegistry.create(registryURL);
+		metadataService = WritableMetadataService.getDefaultExtension();
+		notifyListener = Mockito.spy(NotifyListener.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				List<URL> urls = stubInvo.getArgument(0);
+				notifyListenerCache.addAll(urls);
+				return null;
+			}).when(notifyListener).notify(Mockito.any());
+		} catch (Exception exception) {
+		}
+		ApplicationModel.getConfigManager().setApplication(new ApplicationConfig("Test"));
+	}
 
-    @Test
-    public void testRegister() {
+	@Test
+	public void testSupports() {
+		assertTrue(ServiceDiscoveryRegistry.supports(registryURL));
+	}
 
-        registry.register(url);
+	@Test
+	public void testCreate() {
+		assertNotNull(registry);
+	}
 
-        SortedSet<String> urls = metadataService.getExportedURLs();
+	@Test
+	public void testRegister() {
 
-        assertTrue(urls.isEmpty());
-        assertEquals(toSortedSet(), metadataService.getExportedURLs(SERVICE_INTERFACE));
-        assertEquals(toSortedSet(), metadataService.getExportedURLs(SERVICE_INTERFACE, GROUP));
+		registry.register(url);
 
-        String serviceInterface = "com.acme.UserService";
+		SortedSet<String> urls = metadataService.getExportedURLs();
 
-        URL newURL = url.setServiceInterface(serviceInterface).setPath(serviceInterface);
+		assertTrue(urls.isEmpty());
+		assertEquals(toSortedSet(), metadataService.getExportedURLs(SERVICE_INTERFACE));
+		assertEquals(toSortedSet(), metadataService.getExportedURLs(SERVICE_INTERFACE, GROUP));
 
-        registry.register(newURL);
+		String serviceInterface = "com.acme.UserService";
 
-        urls = metadataService.getExportedURLs();
+		URL newURL = url.setServiceInterface(serviceInterface).setPath(serviceInterface);
 
-        assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION), toSortedSet(urls.first()));
-        assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION, DEFAULT_PROTOCOL), toSortedSet(urls.first()));
+		registry.register(newURL);
 
-    }
+		urls = metadataService.getExportedURLs();
 
-    @Test
-    public void testUnregister() {
+		assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION), toSortedSet(urls.first()));
+		assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION, DEFAULT_PROTOCOL),
+				toSortedSet(urls.first()));
 
-        String serviceInterface = "com.acme.UserService";
+	}
 
-        URL newURL = url.setServiceInterface(serviceInterface).setPath(serviceInterface);
+	@Test
+	public void testUnregister() {
 
-        // register
-        registry.register(newURL);
+		String serviceInterface = "com.acme.UserService";
 
-        SortedSet<String> urls = metadataService.getExportedURLs();
+		URL newURL = url.setServiceInterface(serviceInterface).setPath(serviceInterface);
 
-        assertEquals(1, urls.size());
-        assertTrue(urls.iterator().next().contains(serviceInterface));
-        assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION), urls);
-        assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION, DEFAULT_PROTOCOL), urls);
+		// register
+		registry.register(newURL);
 
-        // unregister
-        registry.unregister(newURL);
+		SortedSet<String> urls = metadataService.getExportedURLs();
 
-        urls = metadataService.getExportedURLs();
+		assertEquals(1, urls.size());
+		assertTrue(urls.iterator().next().contains(serviceInterface));
+		assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION), urls);
+		assertEquals(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION, DEFAULT_PROTOCOL), urls);
 
-        assertEquals(toSortedSet(), urls);
-        assertTrue(CollectionUtils.isEmpty(metadataService.getExportedURLs(serviceInterface)));
-        assertTrue(CollectionUtils.isEmpty(metadataService.getExportedURLs(serviceInterface, GROUP)));
-        assertTrue(CollectionUtils.isEmpty(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION)));
-        assertTrue(CollectionUtils.isEmpty(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION, DEFAULT_PROTOCOL)));
-    }
+		// unregister
+		registry.unregister(newURL);
 
-    @Test
-    public void testSubscribe() {
+		urls = metadataService.getExportedURLs();
 
-        registry.subscribe(url, new MyNotifyListener());
+		assertEquals(toSortedSet(), urls);
+		assertTrue(CollectionUtils.isEmpty(metadataService.getExportedURLs(serviceInterface)));
+		assertTrue(CollectionUtils.isEmpty(metadataService.getExportedURLs(serviceInterface, GROUP)));
+		assertTrue(CollectionUtils.isEmpty(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION)));
+		assertTrue(CollectionUtils
+				.isEmpty(metadataService.getExportedURLs(serviceInterface, GROUP, VERSION, DEFAULT_PROTOCOL)));
+	}
 
-        SortedSet<String> urls = metadataService.getSubscribedURLs();
+	@Test
+	public void testSubscribe() {
 
-        assertTrue(urls.isEmpty());
+		registry.subscribe(url, mockNotifyListener1());
 
-    }
+		SortedSet<String> urls = metadataService.getSubscribedURLs();
 
+		assertTrue(urls.isEmpty());
 
-    private class MyNotifyListener implements NotifyListener {
+	}
 
-        private List<URL> cache = new LinkedList<>();
-
-        @Override
-        public void notify(List<URL> urls) {
-            cache.addAll(urls);
-        }
-
-        public List<URL> getURLs() {
-            return cache;
-        }
-    }
-
-    private static <T extends Comparable<T>> SortedSet<T> toSortedSet(T... values) {
-        return unmodifiableSortedSet(new TreeSet<>(asList(values)));
-    }
+	private static <T extends Comparable<T>> SortedSet<T> toSortedSet(T... values) {
+		return unmodifiableSortedSet(new TreeSet<>(asList(values)));
+	}
 
 }

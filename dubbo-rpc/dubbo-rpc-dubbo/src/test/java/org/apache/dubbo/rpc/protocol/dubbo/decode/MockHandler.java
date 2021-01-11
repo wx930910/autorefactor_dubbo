@@ -16,25 +16,25 @@
  */
 package org.apache.dubbo.rpc.protocol.dubbo.decode;
 
+import java.util.function.Consumer;
+
 import org.apache.dubbo.remoting.ChannelHandler;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 
-import java.util.function.Consumer;
-
 public class MockHandler extends ChannelDuplexHandler {
-    private final Consumer consumer;
+	private final Consumer consumer;
 
-    private final ChannelHandler handler;
+	private final ChannelHandler handler;
 
-    public MockHandler(Consumer consumer, ChannelHandler handler) {
-        this.consumer = consumer;
-        this.handler = handler;
-    }
+	public MockHandler(Consumer consumer, ChannelHandler handler) {
+		this.consumer = consumer;
+		this.handler = handler;
+	}
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        this.handler.received(new MockChannel(consumer), msg);
-    }
+	@Override
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		this.handler.received(MockChannel.mockChannel1(consumer), msg);
+	}
 }

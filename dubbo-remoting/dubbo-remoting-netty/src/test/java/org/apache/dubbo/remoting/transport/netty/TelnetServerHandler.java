@@ -16,31 +16,31 @@
  */
 package org.apache.dubbo.remoting.transport.netty;
 
-import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.exchange.ExchangeChannel;
 import org.apache.dubbo.remoting.exchange.support.Replier;
+import org.mockito.Mockito;
 
 /**
- * Date: 4/26/11
- * Time: 4:29 PM
+ * Date: 4/26/11 Time: 4:29 PM
  */
-public class TelnetServerHandler implements Replier<String> {
+public class TelnetServerHandler {
 
-    public Class<String> interest() {
-        return String.class;
-    }
-
-    public Object reply(ExchangeChannel channel, String msg) throws RemotingException {
-        // Generate and write a response.
-
-        String response;
-        if (msg.length() == 0) {
-            response = "Please type something.\r\n";
-        } else {
-            response = "Did you say '" + msg + "'?\r\n";
-        }
-        //System.out.println(response);
-        return response;
-    }
+	static public Replier<String> mockReplier1() {
+		Replier<String> mockInstance = Mockito.spy(Replier.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				String msg = stubInvo.getArgument(1);
+				String response;
+				if (msg.length() == 0) {
+					response = "Please type something.\r\n";
+				} else {
+					response = "Did you say '" + msg + "'?\r\n";
+				}
+				return response;
+			}).when(mockInstance).reply(Mockito.any(ExchangeChannel.class), Mockito.any(String.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
 }

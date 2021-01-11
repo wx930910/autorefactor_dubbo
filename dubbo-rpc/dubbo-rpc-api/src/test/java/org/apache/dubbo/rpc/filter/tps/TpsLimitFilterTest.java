@@ -16,6 +16,10 @@
  */
 package org.apache.dubbo.rpc.filter.tps;
 
+import static org.apache.dubbo.common.constants.CommonConstants.INTERFACE_KEY;
+import static org.apache.dubbo.rpc.Constants.TPS_LIMIT_RATE_KEY;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
@@ -23,45 +27,40 @@ import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.filter.TpsLimitFilter;
 import org.apache.dubbo.rpc.support.MockInvocation;
 import org.apache.dubbo.rpc.support.MyInvoker;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.apache.dubbo.common.constants.CommonConstants.INTERFACE_KEY;
-import static org.apache.dubbo.rpc.Constants.TPS_LIMIT_RATE_KEY;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 public class TpsLimitFilterTest {
 
-    private TpsLimitFilter filter = new TpsLimitFilter();
+	private TpsLimitFilter filter = new TpsLimitFilter();
 
-    @Test
-    public void testWithoutCount() throws Exception {
-        URL url = URL.valueOf("test://test");
-        url = url.addParameter(INTERFACE_KEY, "org.apache.dubbo.rpc.file.TpsService");
-        url = url.addParameter(TPS_LIMIT_RATE_KEY, 5);
-        Invoker<TpsLimitFilterTest> invoker = new MyInvoker<TpsLimitFilterTest>(url);
-        Invocation invocation = new MockInvocation();
-        filter.invoke(invoker, invocation);
-    }
+	@Test
+	public void testWithoutCount() throws Exception {
+		URL url = URL.valueOf("test://test");
+		url = url.addParameter(INTERFACE_KEY, "org.apache.dubbo.rpc.file.TpsService");
+		url = url.addParameter(TPS_LIMIT_RATE_KEY, 5);
+		Invoker<TpsLimitFilterTest> invoker = new MyInvoker<TpsLimitFilterTest>(url);
+		Invocation invocation = MockInvocation.mockInvocation1();
+		filter.invoke(invoker, invocation);
+	}
 
-    @Test
-    public void testFail() throws Exception {
-        Assertions.assertThrows(RpcException.class, () -> {
-            URL url = URL.valueOf("test://test");
-            url = url.addParameter(INTERFACE_KEY, "org.apache.dubbo.rpc.file.TpsService");
-            url = url.addParameter(TPS_LIMIT_RATE_KEY, 5);
-            Invoker<TpsLimitFilterTest> invoker = new MyInvoker<TpsLimitFilterTest>(url);
-            Invocation invocation = new MockInvocation();
-            for (int i = 0; i < 10; i++) {
-                try {
-                    filter.invoke(invoker, invocation);
-                } catch (Exception e) {
-                    assertTrue(i >= 5);
-                    throw e;
-                }
-            }
-        });
+	@Test
+	public void testFail() throws Exception {
+		Assertions.assertThrows(RpcException.class, () -> {
+			URL url = URL.valueOf("test://test");
+			url = url.addParameter(INTERFACE_KEY, "org.apache.dubbo.rpc.file.TpsService");
+			url = url.addParameter(TPS_LIMIT_RATE_KEY, 5);
+			Invoker<TpsLimitFilterTest> invoker = new MyInvoker<TpsLimitFilterTest>(url);
+			Invocation invocation = MockInvocation.mockInvocation1();
+			for (int i = 0; i < 10; i++) {
+				try {
+					filter.invoke(invoker, invocation);
+				} catch (Exception e) {
+					assertTrue(i >= 5);
+					throw e;
+				}
+			}
+		});
 
-    }
+	}
 }

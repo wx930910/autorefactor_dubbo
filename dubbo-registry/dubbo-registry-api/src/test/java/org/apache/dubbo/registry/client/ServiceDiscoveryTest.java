@@ -16,20 +16,19 @@
  */
 package org.apache.dubbo.registry.client;
 
-import org.apache.dubbo.common.utils.Page;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.apache.dubbo.common.utils.Page;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * {@link ServiceDiscovery} Test case
@@ -38,227 +37,220 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class ServiceDiscoveryTest {
 
-    private ServiceDiscovery serviceDiscovery;
+	private ServiceDiscovery serviceDiscovery;
 
-    @BeforeEach
-    public void init() throws Exception {
-        if (serviceDiscovery == null) {
-            setServiceDiscovery(new InMemoryServiceDiscovery());
-        }
-        // test start()
-        serviceDiscovery.initialize(null);
-    }
+	@BeforeEach
+	public void init() throws Exception {
+		if (serviceDiscovery == null) {
+			setServiceDiscovery(InMemoryServiceDiscovery.mockServiceDiscovery1());
+		}
+		// test start()
+		serviceDiscovery.initialize(null);
+	}
 
-    @AfterEach
-    public void destroy() throws Exception {
-        // test stop()
-        serviceDiscovery.destroy();
-    }
+	@AfterEach
+	public void destroy() throws Exception {
+		// test stop()
+		serviceDiscovery.destroy();
+	}
 
-    @Test
-    public void testToString() {
-        assertEquals("InMemoryServiceDiscovery", serviceDiscovery.toString());
-    }
+	@Test
+	public void testToString() {
+		assertEquals("InMemoryServiceDiscovery", serviceDiscovery.toString());
+	}
 
-    @Test
-    public void testRegisterAndUpdateAndUnregister() {
+	@Test
+	public void testRegisterAndUpdateAndUnregister() {
 
-        // register
-        DefaultServiceInstance serviceInstance = new DefaultServiceInstance("A", "127.0.0.1", 8080);
-        serviceDiscovery.register(serviceInstance);
+		// register
+		DefaultServiceInstance serviceInstance = new DefaultServiceInstance("A", "127.0.0.1", 8080);
+		serviceDiscovery.register(serviceInstance);
 
-        List<ServiceInstance> serviceInstances = serviceDiscovery.getInstances("A");
+		List<ServiceInstance> serviceInstances = serviceDiscovery.getInstances("A");
 
-        assertEquals(1, serviceInstances.size());
-        assertEquals(serviceInstances.get(0), serviceInstance);
+		assertEquals(1, serviceInstances.size());
+		assertEquals(serviceInstances.get(0), serviceInstance);
 
-        serviceInstance.setEnabled(false);
-        serviceInstance.setHealthy(false);
-        serviceInstance.setPort(9090);
+		serviceInstance.setEnabled(false);
+		serviceInstance.setHealthy(false);
+		serviceInstance.setPort(9090);
 
-        // update
-        serviceDiscovery.update(serviceInstance);
+		// update
+		serviceDiscovery.update(serviceInstance);
 
-        serviceInstances = serviceDiscovery.getInstances("A");
+		serviceInstances = serviceDiscovery.getInstances("A");
 
-        assertEquals(1, serviceInstances.size());
-        assertEquals(serviceInstances.get(0), serviceInstance);
+		assertEquals(1, serviceInstances.size());
+		assertEquals(serviceInstances.get(0), serviceInstance);
 
-        // unregister
-        serviceDiscovery.unregister(serviceInstance);
+		// unregister
+		serviceDiscovery.unregister(serviceInstance);
 
-        serviceInstances = serviceDiscovery.getInstances("A");
-        assertTrue(serviceInstances.isEmpty());
-    }
+		serviceInstances = serviceDiscovery.getInstances("A");
+		assertTrue(serviceInstances.isEmpty());
+	}
 
+	@Test
+	public void testGetServices() {
+		serviceDiscovery.register(new DefaultServiceInstance("A", "127.0.0.1", 8080));
+		serviceDiscovery.register(new DefaultServiceInstance("B", "127.0.0.1", 8080));
+		serviceDiscovery.register(new DefaultServiceInstance("C", "127.0.0.1", 8080));
+		assertEquals(new HashSet<>(asList("A", "B", "C")), serviceDiscovery.getServices());
+	}
 
-    @Test
-    public void testGetServices() {
-        serviceDiscovery.register(new DefaultServiceInstance("A", "127.0.0.1", 8080));
-        serviceDiscovery.register(new DefaultServiceInstance("B", "127.0.0.1", 8080));
-        serviceDiscovery.register(new DefaultServiceInstance("C", "127.0.0.1", 8080));
-        assertEquals(new HashSet<>(asList("A", "B", "C")), serviceDiscovery.getServices());
-    }
+	@Test
+	public void testGetInstances() {
 
-    @Test
-    public void testGetInstances() {
+		List<ServiceInstance> instances = asList(new DefaultServiceInstance("A", "127.0.0.1", 8080),
+				new DefaultServiceInstance("A", "127.0.0.1", 8081), new DefaultServiceInstance("A", "127.0.0.1", 8082));
 
-        List<ServiceInstance> instances = asList(
-                new DefaultServiceInstance("A", "127.0.0.1", 8080),
-                new DefaultServiceInstance("A", "127.0.0.1", 8081),
-                new DefaultServiceInstance("A", "127.0.0.1", 8082)
-        );
+		instances.forEach(serviceDiscovery::register);
 
-        instances.forEach(serviceDiscovery::register);
+		// Duplicated
+		serviceDiscovery.register(new DefaultServiceInstance("A", "127.0.0.1", 8080));
+		// Duplicated
+		serviceDiscovery.register(new DefaultServiceInstance("A", "127.0.0.1", 8081));
 
-        // Duplicated
-        serviceDiscovery.register(new DefaultServiceInstance("A", "127.0.0.1", 8080));
-        // Duplicated
-        serviceDiscovery.register(new DefaultServiceInstance("A", "127.0.0.1", 8081));
+		// offset starts 0
+		int offset = 0;
+		// pageSize > total elements
+		int pageSize = 5;
 
-        // offset starts 0
-        int offset = 0;
-        // pageSize > total elements
-        int pageSize = 5;
+		Page<ServiceInstance> page = serviceDiscovery.getInstances("A", offset, pageSize);
+		assertEquals(0, page.getOffset());
+		assertEquals(5, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(3, page.getData().size());
+		assertTrue(page.hasData());
 
-        Page<ServiceInstance> page = serviceDiscovery.getInstances("A", offset, pageSize);
-        assertEquals(0, page.getOffset());
-        assertEquals(5, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(3, page.getData().size());
-        assertTrue(page.hasData());
+		for (ServiceInstance instance : page.getData()) {
+			assertTrue(instances.contains(instance));
+		}
 
-        for (ServiceInstance instance : page.getData()) {
-            assertTrue(instances.contains(instance));
-        }
+		// pageSize < total elements
+		pageSize = 2;
 
-        // pageSize < total elements
-        pageSize = 2;
+		page = serviceDiscovery.getInstances("A", offset, pageSize);
+		assertEquals(0, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(2, page.getData().size());
+		assertTrue(page.hasData());
 
-        page = serviceDiscovery.getInstances("A", offset, pageSize);
-        assertEquals(0, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(2, page.getData().size());
-        assertTrue(page.hasData());
+		for (ServiceInstance instance : page.getData()) {
+			assertTrue(instances.contains(instance));
+		}
 
-        for (ServiceInstance instance : page.getData()) {
-            assertTrue(instances.contains(instance));
-        }
+		offset = 1;
+		page = serviceDiscovery.getInstances("A", offset, pageSize);
+		assertEquals(1, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(2, page.getData().size());
+		assertTrue(page.hasData());
 
-        offset = 1;
-        page = serviceDiscovery.getInstances("A", offset, pageSize);
-        assertEquals(1, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(2, page.getData().size());
-        assertTrue(page.hasData());
+		for (ServiceInstance instance : page.getData()) {
+			assertTrue(instances.contains(instance));
+		}
 
-        for (ServiceInstance instance : page.getData()) {
-            assertTrue(instances.contains(instance));
-        }
+		offset = 2;
+		page = serviceDiscovery.getInstances("A", offset, pageSize);
+		assertEquals(2, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(1, page.getData().size());
+		assertTrue(page.hasData());
 
-        offset = 2;
-        page = serviceDiscovery.getInstances("A", offset, pageSize);
-        assertEquals(2, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(1, page.getData().size());
-        assertTrue(page.hasData());
+		offset = 3;
+		page = serviceDiscovery.getInstances("A", offset, pageSize);
+		assertEquals(3, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(0, page.getData().size());
+		assertFalse(page.hasData());
 
-        offset = 3;
-        page = serviceDiscovery.getInstances("A", offset, pageSize);
-        assertEquals(3, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(0, page.getData().size());
-        assertFalse(page.hasData());
+		offset = 5;
+		page = serviceDiscovery.getInstances("A", offset, pageSize);
+		assertEquals(5, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(0, page.getData().size());
+		assertFalse(page.hasData());
+	}
 
-        offset = 5;
-        page = serviceDiscovery.getInstances("A", offset, pageSize);
-        assertEquals(5, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(0, page.getData().size());
-        assertFalse(page.hasData());
-    }
+	@Test
+	public void testGetInstancesWithHealthy() {
 
-    @Test
-    public void testGetInstancesWithHealthy() {
+		List<ServiceInstance> instances = new LinkedList<>(asList(new DefaultServiceInstance("A", "127.0.0.1", 8080),
+				new DefaultServiceInstance("A", "127.0.0.1", 8081)));
 
-        List<ServiceInstance> instances = new LinkedList<>(asList(
-                new DefaultServiceInstance("A", "127.0.0.1", 8080),
-                new DefaultServiceInstance("A", "127.0.0.1", 8081)
-        ));
+		DefaultServiceInstance serviceInstance = new DefaultServiceInstance("A", "127.0.0.1", 8082);
+		serviceInstance.setHealthy(false);
+		instances.add(serviceInstance);
 
+		instances.forEach(serviceDiscovery::register);
 
-        DefaultServiceInstance serviceInstance = new DefaultServiceInstance("A", "127.0.0.1", 8082);
-        serviceInstance.setHealthy(false);
-        instances.add(serviceInstance);
+		// offset starts 0
+		int offset = 0;
+		// requestSize > total elements
+		int requestSize = 5;
 
-        instances.forEach(serviceDiscovery::register);
+		Page<ServiceInstance> page = serviceDiscovery.getInstances("A", offset, requestSize, true);
+		assertEquals(0, page.getOffset());
+		assertEquals(5, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(2, page.getData().size());
+		assertTrue(page.hasData());
 
-        // offset starts 0
-        int offset = 0;
-        // requestSize > total elements
-        int requestSize = 5;
+		for (ServiceInstance instance : page.getData()) {
+			assertTrue(instances.contains(instance));
+		}
 
-        Page<ServiceInstance> page = serviceDiscovery.getInstances("A", offset, requestSize, true);
-        assertEquals(0, page.getOffset());
-        assertEquals(5, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(2, page.getData().size());
-        assertTrue(page.hasData());
+		// requestSize < total elements
+		requestSize = 2;
 
-        for (ServiceInstance instance : page.getData()) {
-            assertTrue(instances.contains(instance));
-        }
+		offset = 1;
+		page = serviceDiscovery.getInstances("A", offset, requestSize, true);
+		assertEquals(1, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(1, page.getData().size());
+		assertTrue(page.hasData());
 
-        // requestSize < total elements
-        requestSize = 2;
+		for (ServiceInstance instance : page.getData()) {
+			assertTrue(instances.contains(instance));
+		}
 
-        offset = 1;
-        page = serviceDiscovery.getInstances("A", offset, requestSize, true);
-        assertEquals(1, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(1, page.getData().size());
-        assertTrue(page.hasData());
+		offset = 2;
+		page = serviceDiscovery.getInstances("A", offset, requestSize, true);
+		assertEquals(2, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(0, page.getData().size());
+		assertFalse(page.hasData());
 
-        for (ServiceInstance instance : page.getData()) {
-            assertTrue(instances.contains(instance));
-        }
+		offset = 3;
+		page = serviceDiscovery.getInstances("A", offset, requestSize, true);
+		assertEquals(3, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(0, page.getData().size());
+		assertFalse(page.hasData());
 
-        offset = 2;
-        page = serviceDiscovery.getInstances("A", offset, requestSize, true);
-        assertEquals(2, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(0, page.getData().size());
-        assertFalse(page.hasData());
+		offset = 5;
+		page = serviceDiscovery.getInstances("A", offset, requestSize, true);
+		assertEquals(5, page.getOffset());
+		assertEquals(2, page.getPageSize());
+		assertEquals(3, page.getTotalSize());
+		assertEquals(0, page.getData().size());
+		assertFalse(page.hasData());
+	}
 
-        offset = 3;
-        page = serviceDiscovery.getInstances("A", offset, requestSize, true);
-        assertEquals(3, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(0, page.getData().size());
-        assertFalse(page.hasData());
+	public void setServiceDiscovery(ServiceDiscovery serviceDiscovery) {
+		this.serviceDiscovery = serviceDiscovery;
+	}
 
-        offset = 5;
-        page = serviceDiscovery.getInstances("A", offset, requestSize, true);
-        assertEquals(5, page.getOffset());
-        assertEquals(2, page.getPageSize());
-        assertEquals(3, page.getTotalSize());
-        assertEquals(0, page.getData().size());
-        assertFalse(page.hasData());
-    }
-
-    public void setServiceDiscovery(ServiceDiscovery serviceDiscovery) {
-        this.serviceDiscovery = serviceDiscovery;
-    }
-
-    public ServiceDiscovery getServiceDiscovery() {
-        return serviceDiscovery;
-    }
+	public ServiceDiscovery getServiceDiscovery() {
+		return serviceDiscovery;
+	}
 }

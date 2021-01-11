@@ -16,60 +16,59 @@
  */
 package org.apache.remoting.transport.mina;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.exchange.ExchangeChannel;
 import org.apache.dubbo.remoting.exchange.ExchangeServer;
 import org.apache.dubbo.remoting.exchange.support.Replier;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * ClientToServer
  */
 public abstract class ClientToServerTest {
 
-    protected static final String LOCALHOST = "127.0.0.1";
+	protected static final String LOCALHOST = "127.0.0.1";
 
-    protected ExchangeServer server;
+	protected ExchangeServer server;
 
-    protected ExchangeChannel client;
+	protected ExchangeChannel client;
 
-    protected WorldHandler handler = new WorldHandler();
+	protected Replier<World> handler = WorldHandler.mockReplier1();
 
-    protected abstract ExchangeServer newServer(int port, Replier<?> receiver) throws RemotingException;
+	protected abstract ExchangeServer newServer(int port, Replier<?> receiver) throws RemotingException;
 
-    protected abstract ExchangeChannel newClient(int port) throws RemotingException;
+	protected abstract ExchangeChannel newClient(int port) throws RemotingException;
 
-    @BeforeEach
-    protected void setUp() throws Exception {
-        int port = NetUtils.getAvailablePort();
-        server = newServer(port, handler);
-        client = newClient(port);
-    }
+	@BeforeEach
+	protected void setUp() throws Exception {
+		int port = NetUtils.getAvailablePort();
+		server = newServer(port, handler);
+		client = newClient(port);
+	}
 
-    @AfterEach
-    protected void tearDown() {
-        try {
-            if (server != null)
-                server.close();
-        } finally {
-            if (client != null)
-                client.close();
-        }
-    }
+	@AfterEach
+	protected void tearDown() {
+		try {
+			if (server != null)
+				server.close();
+		} finally {
+			if (client != null)
+				client.close();
+		}
+	}
 
-    @Test
-    public void testFuture() throws Exception {
-        CompletableFuture<Object> future = client.request(new World("world"));
-        Hello result = (Hello) future.get();
-        Assertions.assertEquals("hello,world", result.getName());
-    }
+	@Test
+	public void testFuture() throws Exception {
+		CompletableFuture<Object> future = client.request(new World("world"));
+		Hello result = (Hello) future.get();
+		Assertions.assertEquals("hello,world", result.getName());
+	}
 
 //    @Test
 //    public void testCallback() throws Exception {

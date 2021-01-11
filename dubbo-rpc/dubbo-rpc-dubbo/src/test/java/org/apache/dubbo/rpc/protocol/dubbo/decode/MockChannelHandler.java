@@ -20,42 +20,42 @@ import org.apache.dubbo.common.utils.ConcurrentHashSet;
 import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.ChannelHandler;
 import org.apache.dubbo.remoting.RemotingException;
+import org.mockito.Mockito;
 
-import java.util.Collections;
-import java.util.Set;
-
-public class MockChannelHandler implements ChannelHandler {
-    //    ConcurrentMap<String, Channel> channels = new ConcurrentHashMap<String, Channel>();
-    ConcurrentHashSet<Channel> channels = new ConcurrentHashSet<Channel>();
-
-    @Override
-    public void connected(Channel channel) throws RemotingException {
-        channels.add(channel);
-    }
-
-    @Override
-    public void disconnected(Channel channel) throws RemotingException {
-        channels.remove(channel);
-    }
-
-    @Override
-    public void sent(Channel channel, Object message) throws RemotingException {
-        channel.send(message);
-    }
-
-    @Override
-    public void received(Channel channel, Object message) throws RemotingException {
-        //echo 
-        channel.send(message);
-    }
-
-    @Override
-    public void caught(Channel channel, Throwable exception) throws RemotingException {
-        throw new RemotingException(channel, exception);
-
-    }
-
-    public Set<Channel> getChannels() {
-        return Collections.unmodifiableSet(channels);
-    }
+public class MockChannelHandler {
+	static public ChannelHandler mockChannelHandler1() {
+		ConcurrentHashSet<Channel> mockFieldVariableChannels = new ConcurrentHashSet<Channel>();
+		ChannelHandler mockInstance = Mockito.spy(ChannelHandler.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				Throwable exception = stubInvo.getArgument(1);
+				throw new RemotingException(channel, exception);
+			}).when(mockInstance).caught(Mockito.any(Channel.class), Mockito.any(Throwable.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				Object message = stubInvo.getArgument(1);
+				channel.send(message);
+				return null;
+			}).when(mockInstance).sent(Mockito.any(Channel.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				mockFieldVariableChannels.remove(channel);
+				return null;
+			}).when(mockInstance).disconnected(Mockito.any(Channel.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				mockFieldVariableChannels.add(channel);
+				return null;
+			}).when(mockInstance).connected(Mockito.any(Channel.class));
+			Mockito.doAnswer((stubInvo) -> {
+				Channel channel = stubInvo.getArgument(0);
+				Object message = stubInvo.getArgument(1);
+				channel.send(message);
+				return null;
+			}).when(mockInstance).received(Mockito.any(Channel.class), Mockito.any(Object.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 }

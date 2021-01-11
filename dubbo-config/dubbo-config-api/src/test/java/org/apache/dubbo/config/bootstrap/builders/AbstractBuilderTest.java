@@ -16,111 +16,116 @@
  */
 package org.apache.dubbo.config.bootstrap.builders;
 
-import org.apache.dubbo.config.AbstractConfig;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.dubbo.config.AbstractConfig;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 class AbstractBuilderTest {
 
-    @Test
-    void id() {
-        Builder builder = new Builder();
-        builder.id("id");
-        Assertions.assertEquals("id", builder.build().getId());
-    }
+	static private AbstractConfig mockAbstractConfig1() {
+		AbstractConfig mockInstance = Mockito.spy(AbstractConfig.class);
+		try {
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    @Test
-    void prefix() {
-        Builder builder = new Builder();
-        builder.prefix("prefix");
-        Assertions.assertEquals("prefix", builder.build().getPrefix());
-    }
+	@Test
+	void id() {
+		Builder builder = new Builder();
+		builder.id("id");
+		Assertions.assertEquals("id", builder.build().getId());
+	}
 
-    @Test
-    void appendParameter() {
-        Map<String, String> source = null;
+	@Test
+	void prefix() {
+		Builder builder = new Builder();
+		builder.prefix("prefix");
+		Assertions.assertEquals("prefix", builder.build().getPrefix());
+	}
 
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("default.num", "one");
-        parameters.put("num", "ONE");
-        source = AbstractBuilder.appendParameters(source, parameters);
+	@Test
+	void appendParameter() {
+		Map<String, String> source = null;
 
-        Assertions.assertTrue(source.containsKey("default.num"));
-        Assertions.assertEquals("ONE", source.get("num"));
-    }
+		Map<String, String> parameters = new HashMap<>();
+		parameters.put("default.num", "one");
+		parameters.put("num", "ONE");
+		source = AbstractBuilder.appendParameters(source, parameters);
 
-    @Test
-    void appendParameter2() {
-        Map<String, String> source = new HashMap<>();
-        source.put("default.num", "one1");
-        source.put("num", "ONE1");
+		Assertions.assertTrue(source.containsKey("default.num"));
+		Assertions.assertEquals("ONE", source.get("num"));
+	}
 
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("default.num", "one");
-        parameters.put("num", "ONE");
-        source = AbstractBuilder.appendParameters(source, parameters);
+	@Test
+	void appendParameter2() {
+		Map<String, String> source = new HashMap<>();
+		source.put("default.num", "one1");
+		source.put("num", "ONE1");
 
-        Assertions.assertTrue(source.containsKey("default.num"));
-        Assertions.assertEquals("ONE", source.get("num"));
-    }
+		Map<String, String> parameters = new HashMap<>();
+		parameters.put("default.num", "one");
+		parameters.put("num", "ONE");
+		source = AbstractBuilder.appendParameters(source, parameters);
 
-    @Test
-    void appendParameters() {
-        Map<String, String> source = null;
+		Assertions.assertTrue(source.containsKey("default.num"));
+		Assertions.assertEquals("ONE", source.get("num"));
+	}
 
-        source = AbstractBuilder.appendParameter(source, "default.num", "one");
-        source = AbstractBuilder.appendParameter(source, "num", "ONE");
+	@Test
+	void appendParameters() {
+		Map<String, String> source = null;
 
-        Assertions.assertTrue(source.containsKey("default.num"));
-        Assertions.assertEquals("ONE", source.get("num"));
-    }
+		source = AbstractBuilder.appendParameter(source, "default.num", "one");
+		source = AbstractBuilder.appendParameter(source, "num", "ONE");
 
-    @Test
-    void appendParameters2() {
-        Map<String, String> source = new HashMap<>();
-        source.put("default.num", "one1");
-        source.put("num", "ONE1");
+		Assertions.assertTrue(source.containsKey("default.num"));
+		Assertions.assertEquals("ONE", source.get("num"));
+	}
 
-        source = AbstractBuilder.appendParameter(source, "default.num", "one");
-        source = AbstractBuilder.appendParameter(source, "num", "ONE");
+	@Test
+	void appendParameters2() {
+		Map<String, String> source = new HashMap<>();
+		source.put("default.num", "one1");
+		source.put("num", "ONE1");
 
-        Assertions.assertTrue(source.containsKey("default.num"));
-        Assertions.assertEquals("ONE", source.get("num"));
-    }
+		source = AbstractBuilder.appendParameter(source, "default.num", "one");
+		source = AbstractBuilder.appendParameter(source, "num", "ONE");
 
-    @Test
-    void build() {
-        Builder builder = new Builder();
-        builder.id("id");
-        builder.prefix("prefix");
+		Assertions.assertTrue(source.containsKey("default.num"));
+		Assertions.assertEquals("ONE", source.get("num"));
+	}
 
-        Config config = builder.build();
-        Config config2 = builder.build();
+	@Test
+	void build() {
+		Builder builder = new Builder();
+		builder.id("id");
+		builder.prefix("prefix");
 
-        Assertions.assertEquals("id", config.getId());
-        Assertions.assertEquals("prefix", config.getPrefix());
+		AbstractConfig config = builder.build();
+		AbstractConfig config2 = builder.build();
 
-        Assertions.assertNotSame(config, config2);
-    }
+		Assertions.assertEquals("id", config.getId());
+		Assertions.assertEquals("prefix", config.getPrefix());
 
-    private static class Builder extends AbstractBuilder<Config, Builder> {
-        public Config build() {
-            Config parameterConfig = new Config();
-            super.build(parameterConfig);
+		Assertions.assertNotSame(config, config2);
+	}
 
-            return parameterConfig;
-        }
+	private static class Builder extends AbstractBuilder<AbstractConfig, Builder> {
+		public AbstractConfig build() {
+			AbstractConfig parameterConfig = AbstractBuilderTest.mockAbstractConfig1();
+			super.build(parameterConfig);
 
-        @Override
-        protected Builder getThis() {
-            return this;
-        }
-    }
+			return parameterConfig;
+		}
 
-    private static class Config extends AbstractConfig {
-    }
+		@Override
+		protected Builder getThis() {
+			return this;
+		}
+	}
 }

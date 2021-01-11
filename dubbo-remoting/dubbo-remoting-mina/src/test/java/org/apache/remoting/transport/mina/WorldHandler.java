@@ -16,21 +16,25 @@
  */
 package org.apache.remoting.transport.mina;
 
-import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.exchange.ExchangeChannel;
 import org.apache.dubbo.remoting.exchange.support.Replier;
+import org.mockito.Mockito;
 
 /**
  * DataHandler
  */
-public class WorldHandler implements Replier<World> {
+public class WorldHandler {
 
-    public Class<World> interest() {
-        return World.class;
-    }
-
-    public Object reply(ExchangeChannel channel, World msg) throws RemotingException {
-        return new Hello("hello," + msg.getName());
-    }
+	static public Replier<World> mockReplier1() {
+		Replier<World> mockInstance = Mockito.spy(Replier.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				World msg = stubInvo.getArgument(1);
+				return new Hello("hello," + msg.getName());
+			}).when(mockInstance).reply(Mockito.any(ExchangeChannel.class), Mockito.any(World.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
 }
