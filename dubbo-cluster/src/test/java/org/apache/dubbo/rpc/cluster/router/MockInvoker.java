@@ -19,45 +19,75 @@ package org.apache.dubbo.rpc.cluster.router;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
-import org.apache.dubbo.rpc.Result;
-import org.apache.dubbo.rpc.RpcException;
+import org.mockito.Mockito;
 
-public class MockInvoker<T> implements Invoker<T> {
-    private boolean available = false;
-    private URL url;
+public class MockInvoker {
+	static public Invoker<String> mockInvoker2() {
+		boolean mockFieldVariableAvailable = false;
+		URL mockFieldVariableUrl = null;
+		Invoker<String> mockInstance = Mockito.spy(Invoker.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableAvailable;
+			}).when(mockInstance).isAvailable();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getInterface();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).invoke(Mockito.any(Invocation.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableUrl;
+			}).when(mockInstance).getUrl();
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    public MockInvoker() {
-    }
+	static public Invoker<String> mockInvoker1(URL url) {
+		boolean mockFieldVariableAvailable = false;
+		URL[] mockFieldVariableUrl = new URL[1];
+		Invoker<String> mockInstance = Mockito.mock(Invoker.class,
+				Mockito.withSettings().useConstructor().defaultAnswer(Mockito.CALLS_REAL_METHODS));
+		mockFieldVariableUrl[0] = url;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableAvailable;
+			}).when(mockInstance).isAvailable();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getInterface();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).invoke(Mockito.any(Invocation.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableUrl[0];
+			}).when(mockInstance).getUrl();
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    public MockInvoker(URL url) {
-        super();
-        this.url = url;
-    }
-
-    public MockInvoker(boolean available) {
-        this.available = available;
-    }
-
-    @Override
-    public Class<T> getInterface() {
-        return null;
-    }
-
-    public URL getUrl() {
-        return url;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return available;
-    }
-
-    @Override
-    public Result invoke(Invocation invocation) throws RpcException {
-        return null;
-    }
-
-    @Override
-    public void destroy() {
-    }
+	static public Invoker<String> mockInvoker3(boolean available) {
+		boolean[] mockFieldVariableAvailable = new boolean[] { false };
+		URL mockFieldVariableUrl = null;
+		Invoker<String> mockInstance = Mockito.spy(Invoker.class);
+		mockFieldVariableAvailable[0] = available;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableAvailable[0];
+			}).when(mockInstance).isAvailable();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getInterface();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).invoke(Mockito.any(Invocation.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableUrl;
+			}).when(mockInstance).getUrl();
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 }

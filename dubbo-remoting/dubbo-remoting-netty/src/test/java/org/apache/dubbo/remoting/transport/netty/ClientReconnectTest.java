@@ -18,79 +18,74 @@ package org.apache.dubbo.remoting.transport.netty;
 
 import org.apache.dubbo.common.utils.DubboAppender;
 import org.apache.dubbo.common.utils.NetUtils;
-import org.apache.dubbo.remoting.Channel;
 import org.apache.dubbo.remoting.Client;
 import org.apache.dubbo.remoting.Constants;
 import org.apache.dubbo.remoting.RemotingException;
 import org.apache.dubbo.remoting.RemotingServer;
 import org.apache.dubbo.remoting.exchange.Exchangers;
 import org.apache.dubbo.remoting.exchange.support.ExchangeHandlerAdapter;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /**
  * Client reconnect test
  */
 public class ClientReconnectTest {
 
-    @BeforeEach
-    public void clear() {
-        DubboAppender.clear();
-    }
+	static public ExchangeHandlerAdapter mockExchangeHandlerAdapter1() {
+		ExchangeHandlerAdapter mockInstance = Mockito.spy(ExchangeHandlerAdapter.class);
+		try {
+			Mockito.doNothing().when(mockInstance).disconnected(Mockito.any());
+			Mockito.doNothing().when(mockInstance).connected(Mockito.any());
+			Mockito.doNothing().when(mockInstance).caught(Mockito.any(), Mockito.any());
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    @Test
-    public void testReconnect() throws RemotingException, InterruptedException {
-        {
-            int port = NetUtils.getAvailablePort();
-            Client client = startClient(port, 200);
-            Assertions.assertFalse(client.isConnected());
-            RemotingServer server = startServer(port);
-            for (int i = 0; i < 1000 && !client.isConnected(); i++) {
-                Thread.sleep(10);
-            }
-            Assertions.assertTrue(client.isConnected());
-            client.close(2000);
-            server.close(2000);
-        }
-        {
-            int port = NetUtils.getAvailablePort();
-            Client client = startClient(port, 20000);
-            Assertions.assertFalse(client.isConnected());
-            RemotingServer server = startServer(port);
-            for (int i = 0; i < 5; i++) {
-                Thread.sleep(200);
-            }
-            Assertions.assertFalse(client.isConnected());
-            client.close(2000);
-            server.close(2000);
-        }
-    }
+	@BeforeEach
+	public void clear() {
+		DubboAppender.clear();
+	}
 
+	@Test
+	public void testReconnect() throws RemotingException, InterruptedException {
+		{
+			int port = NetUtils.getAvailablePort();
+			Client client = startClient(port, 200);
+			Assertions.assertFalse(client.isConnected());
+			RemotingServer server = startServer(port);
+			for (int i = 0; i < 1000 && !client.isConnected(); i++) {
+				Thread.sleep(10);
+			}
+			Assertions.assertTrue(client.isConnected());
+			client.close(2000);
+			server.close(2000);
+		}
+		{
+			int port = NetUtils.getAvailablePort();
+			Client client = startClient(port, 20000);
+			Assertions.assertFalse(client.isConnected());
+			RemotingServer server = startServer(port);
+			for (int i = 0; i < 5; i++) {
+				Thread.sleep(200);
+			}
+			Assertions.assertFalse(client.isConnected());
+			client.close(2000);
+			server.close(2000);
+		}
+	}
 
-    public Client startClient(int port, int heartbeat) throws RemotingException {
-        final String url = "exchange://127.0.0.1:" + port + "/client.reconnect.test?check=false&client=netty3&" +
-                Constants.HEARTBEAT_KEY + "=" + heartbeat;
-        return Exchangers.connect(url);
-    }
+	public Client startClient(int port, int heartbeat) throws RemotingException {
+		final String url = "exchange://127.0.0.1:" + port + "/client.reconnect.test?check=false&client=netty3&"
+				+ Constants.HEARTBEAT_KEY + "=" + heartbeat;
+		return Exchangers.connect(url);
+	}
 
-    public RemotingServer startServer(int port) throws RemotingException {
-        final String url = "exchange://127.0.0.1:" + port + "/client.reconnect.test?server=netty3";
-        return Exchangers.bind(url, new HandlerAdapter());
-    }
-
-    static class HandlerAdapter extends ExchangeHandlerAdapter {
-        @Override
-        public void connected(Channel channel) throws RemotingException {
-        }
-
-        @Override
-        public void disconnected(Channel channel) throws RemotingException {
-        }
-
-        @Override
-        public void caught(Channel channel, Throwable exception) throws RemotingException {
-        }
-    }
+	public RemotingServer startServer(int port) throws RemotingException {
+		final String url = "exchange://127.0.0.1:" + port + "/client.reconnect.test?server=netty3";
+		return Exchangers.bind(url, ClientReconnectTest.mockExchangeHandlerAdapter1());
+	}
 }

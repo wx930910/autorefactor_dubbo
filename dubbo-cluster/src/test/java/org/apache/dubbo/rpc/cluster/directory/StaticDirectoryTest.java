@@ -16,6 +16,11 @@
  */
 package org.apache.dubbo.rpc.cluster.directory;
 
+import static org.apache.dubbo.rpc.cluster.Constants.RULE_KEY;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.utils.NetUtils;
 import org.apache.dubbo.rpc.Invoker;
@@ -23,44 +28,42 @@ import org.apache.dubbo.rpc.RpcInvocation;
 import org.apache.dubbo.rpc.cluster.Router;
 import org.apache.dubbo.rpc.cluster.router.MockInvoker;
 import org.apache.dubbo.rpc.cluster.router.condition.ConditionRouterFactory;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.apache.dubbo.rpc.cluster.Constants.RULE_KEY;
 
 /**
  * StaticDirectory Test
  */
 public class StaticDirectoryTest {
-    private URL SCRIPT_URL = URL.valueOf("condition://0.0.0.0/com.foo.BarService");
+	private URL SCRIPT_URL = URL.valueOf("condition://0.0.0.0/com.foo.BarService");
 
-    private URL getRouteUrl(String rule) {
-        return SCRIPT_URL.addParameterAndEncoded(RULE_KEY, rule);
-    }
+	private URL getRouteUrl(String rule) {
+		return SCRIPT_URL.addParameterAndEncoded(RULE_KEY, rule);
+	}
 
-    @Test
-    public void testStaticDirectory() {
-        Router router = new ConditionRouterFactory().getRouter(getRouteUrl(" => " + " host = " + NetUtils.getLocalHost()));
-        List<Router> routers = new ArrayList<Router>();
-        routers.add(router);
-        List<Invoker<String>> invokers = new ArrayList<Invoker<String>>();
-        Invoker<String> invoker1 = new MockInvoker<String>(URL.valueOf("dubbo://10.20.3.3:20880/com.foo.BarService"));
-        Invoker<String> invoker2 = new MockInvoker<String>(URL.valueOf("dubbo://" + NetUtils.getLocalHost() + ":20880/com.foo.BarService"));
-        Invoker<String> invoker3 = new MockInvoker<String>(URL.valueOf("dubbo://" + NetUtils.getLocalHost() + ":20880/com.foo.BarService"));
-        invokers.add(invoker1);
-        invokers.add(invoker2);
-        invokers.add(invoker3);
-        List<Invoker<String>> filteredInvokers = router.route(invokers, URL.valueOf("consumer://" + NetUtils.getLocalHost() + "/com.foo.BarService"), new RpcInvocation());
-        StaticDirectory<String> staticDirectory = new StaticDirectory<>(filteredInvokers);
-        boolean isAvailable = staticDirectory.isAvailable();
-        Assertions.assertTrue(!isAvailable);
-        List<Invoker<String>> newInvokers = staticDirectory.list(new MockDirInvocation());
-        Assertions.assertTrue(newInvokers.size() > 0);
-        staticDirectory.destroy();
-        Assertions.assertEquals(0, newInvokers.size());
-    }
+	@Test
+	public void testStaticDirectory() {
+		Router router = new ConditionRouterFactory()
+				.getRouter(getRouteUrl(" => " + " host = " + NetUtils.getLocalHost()));
+		List<Router> routers = new ArrayList<Router>();
+		routers.add(router);
+		List<Invoker<String>> invokers = new ArrayList<Invoker<String>>();
+		Invoker<String> invoker1 = MockInvoker.mockInvoker1(URL.valueOf("dubbo://10.20.3.3:20880/com.foo.BarService"));
+		Invoker<String> invoker2 = MockInvoker
+				.mockInvoker1(URL.valueOf("dubbo://" + NetUtils.getLocalHost() + ":20880/com.foo.BarService"));
+		Invoker<String> invoker3 = MockInvoker
+				.mockInvoker1(URL.valueOf("dubbo://" + NetUtils.getLocalHost() + ":20880/com.foo.BarService"));
+		invokers.add(invoker1);
+		invokers.add(invoker2);
+		invokers.add(invoker3);
+		List<Invoker<String>> filteredInvokers = router.route(invokers,
+				URL.valueOf("consumer://" + NetUtils.getLocalHost() + "/com.foo.BarService"), new RpcInvocation());
+		StaticDirectory<String> staticDirectory = new StaticDirectory<>(filteredInvokers);
+		boolean isAvailable = staticDirectory.isAvailable();
+		Assertions.assertTrue(!isAvailable);
+		List<Invoker<String>> newInvokers = staticDirectory.list(MockDirInvocation.mockInvocation1());
+		Assertions.assertTrue(newInvokers.size() > 0);
+		staticDirectory.destroy();
+		Assertions.assertEquals(0, newInvokers.size());
+	}
 }

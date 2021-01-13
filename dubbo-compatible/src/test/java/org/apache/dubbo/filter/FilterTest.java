@@ -17,44 +17,44 @@
 
 package org.apache.dubbo.filter;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import org.apache.dubbo.rpc.RpcException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import com.alibaba.dubbo.rpc.Filter;
 import com.alibaba.dubbo.rpc.Invocation;
 import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class FilterTest {
 
-    Filter myFilter = new MyFilter();
+	Filter myFilter = new MyFilter();
 
-    @Test
-    public void testInvokeException() {
-        try {
-            Invoker<FilterTest> invoker = new LegacyInvoker<FilterTest>(null);
-            Invocation invocation = new LegacyInvocation("aa");
-            myFilter.invoke(invoker, invocation);
-            fail();
-        } catch (RpcException e) {
-            Assertions.assertTrue(e.getMessage().contains("arg0 illegal"));
-        }
-    }
+	@Test
+	public void testInvokeException() {
+		try {
+			Invoker<FilterTest> invoker = LegacyInvoker.mockInvoker1(null);
+			Invocation invocation = LegacyInvocation.mockInvocation1("aa");
+			myFilter.invoke(invoker, invocation);
+			fail();
+		} catch (RpcException e) {
+			Assertions.assertTrue(e.getMessage().contains("arg0 illegal"));
+		}
+	}
 
-    @Test
-    public void testDefault() {
-        Invoker<FilterTest> invoker = new LegacyInvoker<FilterTest>(null);
-        Invocation invocation = new LegacyInvocation("bbb");
-        Result res = myFilter.invoke(invoker, invocation);
-        System.out.println(res);
-    }
+	@Test
+	public void testDefault() {
+		Invoker<FilterTest> invoker = LegacyInvoker.mockInvoker1(null);
+		Invocation invocation = LegacyInvocation.mockInvocation1("bbb");
+		Result res = myFilter.invoke(invoker, invocation);
+		System.out.println(res);
+	}
 
-    @AfterAll
-    public static void tear() {
-        Assertions.assertEquals(2, MyFilter.count);
-    }
+	@AfterAll
+	public static void tear() {
+		Assertions.assertEquals(2, MyFilter.count);
+	}
 }

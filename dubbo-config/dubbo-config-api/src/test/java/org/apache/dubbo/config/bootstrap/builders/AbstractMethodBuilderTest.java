@@ -16,181 +16,186 @@
  */
 package org.apache.dubbo.config.bootstrap.builders;
 
-import org.apache.dubbo.config.AbstractMethodConfig;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.dubbo.config.AbstractMethodConfig;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
 class AbstractMethodBuilderTest {
 
-    @Test
-    void timeout() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.timeout(10);
+	static private AbstractMethodConfig mockAbstractMethodConfig1() {
+		AbstractMethodConfig mockInstance = Mockito.spy(AbstractMethodConfig.class);
+		try {
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-        Assertions.assertEquals(10, builder.build().getTimeout());
-    }
+	@Test
+	void timeout() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.timeout(10);
 
-    @Test
-    void retries() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.retries(3);
+		Assertions.assertEquals(10, builder.build().getTimeout());
+	}
 
-        Assertions.assertEquals(3, builder.build().getRetries());
-    }
+	@Test
+	void retries() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.retries(3);
 
-    @Test
-    void actives() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.actives(3);
+		Assertions.assertEquals(3, builder.build().getRetries());
+	}
 
-        Assertions.assertEquals(3, builder.build().getActives());
-    }
+	@Test
+	void actives() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.actives(3);
 
-    @Test
-    void loadbalance() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.loadbalance("mockloadbalance");
+		Assertions.assertEquals(3, builder.build().getActives());
+	}
 
-        Assertions.assertEquals("mockloadbalance", builder.build().getLoadbalance());
-    }
+	@Test
+	void loadbalance() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.loadbalance("mockloadbalance");
 
-    @Test
-    void async() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.async(true);
+		Assertions.assertEquals("mockloadbalance", builder.build().getLoadbalance());
+	}
 
-        Assertions.assertTrue(builder.build().isAsync());
-    }
+	@Test
+	void async() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.async(true);
 
-    @Test
-    void sent() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.sent(true);
+		Assertions.assertTrue(builder.build().isAsync());
+	}
 
-        Assertions.assertTrue(builder.build().getSent());
-    }
+	@Test
+	void sent() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.sent(true);
 
-    @Test
-    void mock() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.mock("mock");
-        Assertions.assertEquals("mock", builder.build().getMock());
-        builder.mock("return null");
-        Assertions.assertEquals("return null", builder.build().getMock());
-    }
+		Assertions.assertTrue(builder.build().getSent());
+	}
 
-    @Test
-    void mock1() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.mock(true);
-        Assertions.assertEquals("true", builder.build().getMock());
-        builder.mock(false);
-        Assertions.assertEquals("false", builder.build().getMock());
-    }
+	@Test
+	void mock() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.mock("mock");
+		Assertions.assertEquals("mock", builder.build().getMock());
+		builder.mock("return null");
+		Assertions.assertEquals("return null", builder.build().getMock());
+	}
 
-    @Test
-    void merger() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.merger("merger");
-        Assertions.assertEquals("merger", builder.build().getMerger());
-    }
+	@Test
+	void mock1() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.mock(true);
+		Assertions.assertEquals("true", builder.build().getMock());
+		builder.mock(false);
+		Assertions.assertEquals("false", builder.build().getMock());
+	}
 
-    @Test
-    void cache() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.cache("cache");
-        Assertions.assertEquals("cache", builder.build().getCache());
-    }
+	@Test
+	void merger() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.merger("merger");
+		Assertions.assertEquals("merger", builder.build().getMerger());
+	}
 
-    @Test
-    void validation() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.validation("validation");
-        Assertions.assertEquals("validation", builder.build().getValidation());
-    }
+	@Test
+	void cache() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.cache("cache");
+		Assertions.assertEquals("cache", builder.build().getCache());
+	}
 
-    @Test
-    void appendParameter() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.appendParameter("default.num", "one").appendParameter("num", "ONE");
+	@Test
+	void validation() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.validation("validation");
+		Assertions.assertEquals("validation", builder.build().getValidation());
+	}
 
-        Map<String, String> parameters = builder.build().getParameters();
+	@Test
+	void appendParameter() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.appendParameter("default.num", "one").appendParameter("num", "ONE");
 
-        Assertions.assertTrue(parameters.containsKey("default.num"));
-        Assertions.assertEquals("ONE", parameters.get("num"));
-    }
+		Map<String, String> parameters = builder.build().getParameters();
 
-    @Test
-    void appendParameters() {
-        Map<String, String> source = new HashMap<>();
-        source.put("default.num", "one");
-        source.put("num", "ONE");
+		Assertions.assertTrue(parameters.containsKey("default.num"));
+		Assertions.assertEquals("ONE", parameters.get("num"));
+	}
 
-        MethodBuilder builder = new MethodBuilder();
-        builder.appendParameters(source);
+	@Test
+	void appendParameters() {
+		Map<String, String> source = new HashMap<>();
+		source.put("default.num", "one");
+		source.put("num", "ONE");
 
-        Map<String, String> parameters = builder.build().getParameters();
+		MethodBuilder builder = new MethodBuilder();
+		builder.appendParameters(source);
 
-        Assertions.assertTrue(parameters.containsKey("default.num"));
-        Assertions.assertEquals("ONE", parameters.get("num"));
-    }
+		Map<String, String> parameters = builder.build().getParameters();
 
-    @Test
-    void forks() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.forks(5);
+		Assertions.assertTrue(parameters.containsKey("default.num"));
+		Assertions.assertEquals("ONE", parameters.get("num"));
+	}
 
-        Assertions.assertEquals(5, builder.build().getForks());
-    }
+	@Test
+	void forks() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.forks(5);
 
-    @Test
-    void build() {
-        MethodBuilder builder = new MethodBuilder();
-        builder.id("id").prefix("prefix").timeout(1).retries(2).actives(3).loadbalance("mockloadbalance").async(true)
-                .sent(false).mock("mock").merger("merger").cache("cache").validation("validation")
-                .appendParameter("default.num", "one");
+		Assertions.assertEquals(5, builder.build().getForks());
+	}
 
-        MethodConfig config = builder.build();
-        MethodConfig config2 = builder.build();
+	@Test
+	void build() {
+		MethodBuilder builder = new MethodBuilder();
+		builder.id("id").prefix("prefix").timeout(1).retries(2).actives(3).loadbalance("mockloadbalance").async(true)
+				.sent(false).mock("mock").merger("merger").cache("cache").validation("validation")
+				.appendParameter("default.num", "one");
 
-        Assertions.assertEquals("id", config.getId());
-        Assertions.assertEquals("prefix", config.getPrefix());
-        Assertions.assertEquals(1, config.getTimeout());
-        Assertions.assertEquals(2, config.getRetries());
-        Assertions.assertEquals(3, config.getActives());
-        Assertions.assertEquals("mockloadbalance", config.getLoadbalance());
-        Assertions.assertTrue(config.isAsync());
-        Assertions.assertFalse(config.getSent());
-        Assertions.assertEquals("mock", config.getMock());
-        Assertions.assertEquals("merger", config.getMerger());
-        Assertions.assertEquals("cache", config.getCache());
-        Assertions.assertEquals("validation", config.getValidation());
-        Assertions.assertTrue(config.getParameters().containsKey("default.num"));
-        Assertions.assertEquals("one", config.getParameters().get("default.num"));
+		AbstractMethodConfig config = builder.build();
+		AbstractMethodConfig config2 = builder.build();
 
-        Assertions.assertNotSame(config, config2);
+		Assertions.assertEquals("id", config.getId());
+		Assertions.assertEquals("prefix", config.getPrefix());
+		Assertions.assertEquals(1, config.getTimeout());
+		Assertions.assertEquals(2, config.getRetries());
+		Assertions.assertEquals(3, config.getActives());
+		Assertions.assertEquals("mockloadbalance", config.getLoadbalance());
+		Assertions.assertTrue(config.isAsync());
+		Assertions.assertFalse(config.getSent());
+		Assertions.assertEquals("mock", config.getMock());
+		Assertions.assertEquals("merger", config.getMerger());
+		Assertions.assertEquals("cache", config.getCache());
+		Assertions.assertEquals("validation", config.getValidation());
+		Assertions.assertTrue(config.getParameters().containsKey("default.num"));
+		Assertions.assertEquals("one", config.getParameters().get("default.num"));
 
-    }
+		Assertions.assertNotSame(config, config2);
 
-    private static class MethodBuilder extends AbstractMethodBuilder<MethodConfig, MethodBuilder> {
+	}
 
-        public MethodConfig build() {
-            MethodConfig parameterConfig = new MethodConfig();
-            super.build(parameterConfig);
+	private static class MethodBuilder extends AbstractMethodBuilder<AbstractMethodConfig, MethodBuilder> {
 
-            return parameterConfig;
-        }
+		public AbstractMethodConfig build() {
+			AbstractMethodConfig parameterConfig = AbstractMethodBuilderTest.mockAbstractMethodConfig1();
+			super.build(parameterConfig);
 
-        @Override
-        protected MethodBuilder getThis() {
-            return this;
-        }
-    }
+			return parameterConfig;
+		}
 
-    private static class MethodConfig extends AbstractMethodConfig {
-    }
+		@Override
+		protected MethodBuilder getThis() {
+			return this;
+		}
+	}
 }

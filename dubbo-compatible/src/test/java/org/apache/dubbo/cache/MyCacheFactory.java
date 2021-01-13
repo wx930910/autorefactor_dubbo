@@ -23,8 +23,8 @@ import com.alibaba.dubbo.common.URL;
 
 public class MyCacheFactory extends AbstractCacheFactory {
 
-    @Override
-    protected Cache createCache(URL url) {
-        return new MyCache(url);
-    }
+	@Override
+	protected Cache createCache(URL url) {
+		return MyCache.mockCache1(url);
+	}
 }

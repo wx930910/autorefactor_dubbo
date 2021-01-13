@@ -17,19 +17,15 @@
 
 package org.apache.dubbo.metadata.report.support;
 
-import static java.util.Collections.emptySet;
 import static org.apache.dubbo.common.constants.CommonConstants.CONSUMER_SIDE;
 import static org.apache.dubbo.common.constants.CommonConstants.PROVIDER_SIDE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.dubbo.common.URL;
@@ -47,6 +43,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.google.gson.Gson;
 
@@ -65,13 +62,118 @@ import com.google.gson.Gson;
 
 public class AbstractMetadataReportTest {
 
-	private NewMetadataReport abstractMetadataReport;
+	static public AbstractMetadataReport mockAbstractMetadataReport1(URL metadataReportURL, int needRetryTimes) {
+		int[] mockFieldVariableNeedRetryTimes = new int[1];
+		int[] mockFieldVariableExecuteTimes = new int[] { 0 };
+		Map<String, String> mockFieldVariableStore = new ConcurrentHashMap<>();
+		AbstractMetadataReport mockInstance = Mockito.mock(AbstractMetadataReport.class,
+				Mockito.withSettings().useConstructor(metadataReportURL).defaultAnswer(Mockito.CALLS_REAL_METHODS));
+		mockFieldVariableNeedRetryTimes[0] = needRetryTimes;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				MetadataIdentifier providerMetadataIdentifier = stubInvo.getArgument(0);
+				String serviceDefinitions = stubInvo.getArgument(1);
+				++mockFieldVariableExecuteTimes[0];
+				System.out.println("***" + mockFieldVariableExecuteTimes[0] + ";" + System.currentTimeMillis());
+				if (mockFieldVariableExecuteTimes[0] <= mockFieldVariableNeedRetryTimes[0]) {
+					throw new RuntimeException("must retry:" + mockFieldVariableExecuteTimes[0]);
+				}
+				mockFieldVariableStore.put(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY),
+						serviceDefinitions);
+				return null;
+			}).when(mockInstance).doStoreProviderMetadata(Mockito.any(MetadataIdentifier.class),
+					Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				MetadataIdentifier consumerMetadataIdentifier = stubInvo.getArgument(0);
+				String serviceParameterString = stubInvo.getArgument(1);
+				++mockFieldVariableExecuteTimes[0];
+				if (mockFieldVariableExecuteTimes[0] <= mockFieldVariableNeedRetryTimes[0]) {
+					throw new RuntimeException("must retry:" + mockFieldVariableExecuteTimes[0]);
+				}
+				mockFieldVariableStore.put(consumerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY),
+						serviceParameterString);
+				return null;
+			}).when(mockInstance).doStoreConsumerMetadata(Mockito.any(MetadataIdentifier.class),
+					Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(mockInstance).getServiceDefinition(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(mockInstance).doGetSubscribedURLs(Mockito.any(SubscriberMetadataIdentifier.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(mockInstance).doSaveMetadata(Mockito.any(ServiceMetadataIdentifier.class), Mockito.any(URL.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(mockInstance).doRemoveMetadata(Mockito.any(ServiceMetadataIdentifier.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(mockInstance).doGetExportedURLs(Mockito.any(ServiceMetadataIdentifier.class));
+			Mockito.doNothing().when(mockInstance).doSaveSubscriberData(Mockito.any(SubscriberMetadataIdentifier.class),
+					Mockito.any(String.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
+
+	Map<String, String> abstractMetadataReportStore = new ConcurrentHashMap<>();
+
+	private AbstractMetadataReport abstractMetadataReport;
 
 	@BeforeEach
 	public void before() {
 		URL url = URL.valueOf("zookeeper://" + NetUtils.getLocalAddress().getHostName()
 				+ ":4444/org.apache.dubbo.TestService?version=1.0.0&application=vic");
-		abstractMetadataReport = new NewMetadataReport(url);
+		abstractMetadataReport = Mockito.mock(AbstractMetadataReport.class,
+				Mockito.withSettings().useConstructor(url).defaultAnswer(Mockito.CALLS_REAL_METHODS));
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(abstractMetadataReport).getServiceDefinition(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				MetadataIdentifier consumerMetadataIdentifier = stubInvo.getArgument(0);
+				String serviceParameterString = stubInvo.getArgument(1);
+				abstractMetadataReportStore.put(consumerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY),
+						serviceParameterString);
+				return null;
+			}).when(abstractMetadataReport).doStoreConsumerMetadata(Mockito.any(MetadataIdentifier.class),
+					Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				MetadataIdentifier providerMetadataIdentifier = stubInvo.getArgument(0);
+				String serviceDefinitions = stubInvo.getArgument(1);
+				abstractMetadataReportStore.put(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY),
+						serviceDefinitions);
+				return null;
+			}).when(abstractMetadataReport).doStoreProviderMetadata(Mockito.any(MetadataIdentifier.class),
+					Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(abstractMetadataReport).doRemoveMetadata(Mockito.any(ServiceMetadataIdentifier.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(abstractMetadataReport).doGetExportedURLs(Mockito.any(ServiceMetadataIdentifier.class));
+			Mockito.doNothing().when(abstractMetadataReport)
+					.doSaveSubscriberData(Mockito.any(SubscriberMetadataIdentifier.class), Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(abstractMetadataReport).doSaveMetadata(Mockito.any(ServiceMetadataIdentifier.class),
+					Mockito.any(URL.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(abstractMetadataReport).doGetSubscribedURLs(Mockito.any(SubscriberMetadataIdentifier.class));
+		} catch (Exception exception) {
+		}
 		// set the simple name of current class as the application name
 		ApplicationModel.getConfigManager().setApplication(new ApplicationConfig(getClass().getSimpleName()));
 	}
@@ -105,7 +207,7 @@ public class AbstractMetadataReportTest {
 				group, application);
 		Thread.sleep(1500);
 		Assertions.assertNotNull(
-				abstractMetadataReport.store.get(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY)));
+				abstractMetadataReportStore.get(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY)));
 	}
 
 	@Test
@@ -118,7 +220,7 @@ public class AbstractMetadataReportTest {
 		MetadataIdentifier providerMetadataIdentifier = storePrivider(abstractMetadataReport, interfaceName, version,
 				group, application);
 		Assertions.assertNotNull(
-				abstractMetadataReport.store.get(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY)));
+				abstractMetadataReportStore.get(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY)));
 	}
 	/*
 	 * @Test public void testFileExistAfterPut() throws InterruptedException,
@@ -149,25 +251,80 @@ public class AbstractMetadataReportTest {
 		String application = "vic.retry";
 		URL storeUrl = URL.valueOf("retryReport://" + NetUtils.getLocalAddress().getHostName()
 				+ ":4444/org.apache.dubbo.TestServiceForRetry?version=1.0.0.retry&application=vic.retry");
-		RetryMetadataReport retryReport = new RetryMetadataReport(storeUrl, 2);
+		AbstractMetadataReport retryReport = Mockito.mock(AbstractMetadataReport.class,
+				Mockito.withSettings().useConstructor(storeUrl).defaultAnswer(Mockito.CALLS_REAL_METHODS));
+		int[] retryReportNeedRetryTimes = new int[1];
+		int[] retryReportExecuteTimes = new int[] { 0 };
+		Map<String, String> retryReportStore = new ConcurrentHashMap<>();
+		retryReportNeedRetryTimes[0] = 2;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				MetadataIdentifier providerMetadataIdentifier = stubInvo.getArgument(0);
+				String serviceDefinitions = stubInvo.getArgument(1);
+				++retryReportExecuteTimes[0];
+				System.out.println("***" + retryReportExecuteTimes[0] + ";" + System.currentTimeMillis());
+				if (retryReportExecuteTimes[0] <= retryReportNeedRetryTimes[0]) {
+					throw new RuntimeException("must retry:" + retryReportExecuteTimes[0]);
+				}
+				retryReportStore.put(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY),
+						serviceDefinitions);
+				return null;
+			}).when(retryReport).doStoreProviderMetadata(Mockito.any(MetadataIdentifier.class),
+					Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				MetadataIdentifier consumerMetadataIdentifier = stubInvo.getArgument(0);
+				String serviceParameterString = stubInvo.getArgument(1);
+				++retryReportExecuteTimes[0];
+				if (retryReportExecuteTimes[0] <= retryReportNeedRetryTimes[0]) {
+					throw new RuntimeException("must retry:" + retryReportExecuteTimes[0]);
+				}
+				retryReportStore.put(consumerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY),
+						serviceParameterString);
+				return null;
+			}).when(retryReport).doStoreConsumerMetadata(Mockito.any(MetadataIdentifier.class),
+					Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(retryReport).getServiceDefinition(Mockito.any());
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(retryReport).doGetSubscribedURLs(Mockito.any(SubscriberMetadataIdentifier.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(retryReport).doSaveMetadata(Mockito.any(ServiceMetadataIdentifier.class), Mockito.any(URL.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(retryReport).doRemoveMetadata(Mockito.any(ServiceMetadataIdentifier.class));
+			Mockito.doAnswer((stubInvo) -> {
+				throw new UnsupportedOperationException(
+						"This extension does not support working as a remote metadata center.");
+			}).when(retryReport).doGetExportedURLs(Mockito.any(ServiceMetadataIdentifier.class));
+			Mockito.doNothing().when(retryReport).doSaveSubscriberData(Mockito.any(SubscriberMetadataIdentifier.class),
+					Mockito.any(String.class));
+		} catch (Exception exception) {
+		}
 		retryReport.metadataReportRetry.retryPeriod = 400L;
 		URL url = URL.valueOf("dubbo://" + NetUtils.getLocalAddress().getHostName()
 				+ ":4444/org.apache.dubbo.TestService?version=1.0.0&application=vic");
 		Assertions.assertNull(retryReport.metadataReportRetry.retryScheduledFuture);
 		assertEquals(0, retryReport.metadataReportRetry.retryCounter.get());
-		assertTrue(retryReport.store.isEmpty());
+		assertTrue(retryReportStore.isEmpty());
 		assertTrue(retryReport.failedReports.isEmpty());
 
 		storePrivider(retryReport, interfaceName, version, group, application);
 		Thread.sleep(150);
 
-		assertTrue(retryReport.store.isEmpty());
+		assertTrue(retryReportStore.isEmpty());
 		Assertions.assertFalse(retryReport.failedReports.isEmpty());
 		Assertions.assertNotNull(retryReport.metadataReportRetry.retryScheduledFuture);
 		Thread.sleep(2000L);
 		assertTrue(retryReport.metadataReportRetry.retryCounter.get() != 0);
 		assertTrue(retryReport.metadataReportRetry.retryCounter.get() >= 3);
-		Assertions.assertFalse(retryReport.store.isEmpty());
+		Assertions.assertFalse(retryReportStore.isEmpty());
 		assertTrue(retryReport.failedReports.isEmpty());
 	}
 
@@ -179,7 +336,7 @@ public class AbstractMetadataReportTest {
 		String application = "vic.retry";
 		URL storeUrl = URL.valueOf("retryReport://" + NetUtils.getLocalAddress().getHostName()
 				+ ":4444/org.apache.dubbo.TestServiceForRetryCancel?version=1.0.0.retrycancel&application=vic.retry");
-		RetryMetadataReport retryReport = new RetryMetadataReport(storeUrl, 2);
+		AbstractMetadataReport retryReport = AbstractMetadataReportTest.mockAbstractMetadataReport1(storeUrl, 2);
 		retryReport.metadataReportRetry.retryPeriod = 150L;
 		retryReport.metadataReportRetry.retryTimesIfNonFail = 2;
 
@@ -229,7 +386,7 @@ public class AbstractMetadataReportTest {
 	@Test
 	public void testPublishAll() throws ClassNotFoundException, InterruptedException {
 
-		assertTrue(abstractMetadataReport.store.isEmpty());
+		assertTrue(abstractMetadataReportStore.isEmpty());
 		assertTrue(abstractMetadataReport.allMetadataReports.isEmpty());
 		String interfaceName = "org.apache.dubbo.metadata.store.InterfaceNameTestService";
 		String version = "1.0.0";
@@ -263,28 +420,28 @@ public class AbstractMetadataReportTest {
 		Map tmpMapResult = (Map) abstractMetadataReport.allMetadataReports.get(consumerMetadataIdentifier);
 		assertEquals(tmpMapResult.get("testPKey"), "9090");
 		assertEquals(tmpMapResult.get("testKey"), "value");
-		assertEquals(3, abstractMetadataReport.store.size());
+		assertEquals(3, abstractMetadataReportStore.size());
 
-		abstractMetadataReport.store.clear();
+		abstractMetadataReportStore.clear();
 
-		assertEquals(0, abstractMetadataReport.store.size());
+		assertEquals(0, abstractMetadataReportStore.size());
 
 		abstractMetadataReport.publishAll();
 		Thread.sleep(200);
 
-		assertEquals(3, abstractMetadataReport.store.size());
+		assertEquals(3, abstractMetadataReportStore.size());
 
-		String v = abstractMetadataReport.store.get(providerMetadataIdentifier1.getUniqueKey(KeyTypeEnum.UNIQUE_KEY));
+		String v = abstractMetadataReportStore.get(providerMetadataIdentifier1.getUniqueKey(KeyTypeEnum.UNIQUE_KEY));
 		Gson gson = new Gson();
 		FullServiceDefinition data = gson.fromJson(v, FullServiceDefinition.class);
 		checkParam(data.getParameters(), application, version);
 
-		String v2 = abstractMetadataReport.store.get(providerMetadataIdentifier2.getUniqueKey(KeyTypeEnum.UNIQUE_KEY));
+		String v2 = abstractMetadataReportStore.get(providerMetadataIdentifier2.getUniqueKey(KeyTypeEnum.UNIQUE_KEY));
 		gson = new Gson();
 		data = gson.fromJson(v2, FullServiceDefinition.class);
 		checkParam(data.getParameters(), application, version + "_2");
 
-		String v3 = abstractMetadataReport.store.get(consumerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY));
+		String v3 = abstractMetadataReportStore.get(consumerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY));
 		gson = new Gson();
 		Map v3Map = gson.fromJson(v3, Map.class);
 		checkParam(v3Map, application, version + "_3");
@@ -314,45 +471,37 @@ public class AbstractMetadataReportTest {
 	 * @since 2.7.8
 	 */
 	/*
-	@Test
-	public void testSaveExportedURLs() {
-		String serviceName = null;
-		String exportedServiceRevision = null;
-		String exportedURLsContent = null;
-		SortedSet<String> exportedURLs = null;
-		// Default methods return true
-		assertTrue(abstractMetadataReport.saveExportedURLs(exportedURLs));
-		assertTrue(abstractMetadataReport.saveExportedURLs(exportedServiceRevision, exportedURLs));
-		assertTrue(abstractMetadataReport.saveExportedURLs(serviceName, exportedServiceRevision, exportedURLs));
-		assertTrue(abstractMetadataReport.saveExportedURLs(serviceName, exportedServiceRevision, exportedURLsContent));
-	}
-
-	/**
-	 * Test {@link MetadataReport#getExportedURLs(String, String)} method
+	 * @Test public void testSaveExportedURLs() { String serviceName = null; String
+	 * exportedServiceRevision = null; String exportedURLsContent = null;
+	 * SortedSet<String> exportedURLs = null; // Default methods return true
+	 * assertTrue(abstractMetadataReport.saveExportedURLs(exportedURLs));
+	 * assertTrue(abstractMetadataReport.saveExportedURLs(exportedServiceRevision,
+	 * exportedURLs));
+	 * assertTrue(abstractMetadataReport.saveExportedURLs(serviceName,
+	 * exportedServiceRevision, exportedURLs));
+	 * assertTrue(abstractMetadataReport.saveExportedURLs(serviceName,
+	 * exportedServiceRevision, exportedURLsContent)); }
+	 * 
+	 * /** Test {@link MetadataReport#getExportedURLs(String, String)} method
 	 *
 	 * @since 2.7.8
 	 */
-/*
-	@Test
-	public void testGetExportedURLs() {
-		String serviceName = null;
-		String exportedServiceRevision = null;
-		assertEquals(emptySet(), abstractMetadataReport.getExportedURLs(serviceName, exportedServiceRevision));
-	}
-
-	/**
-	 * Test {@link MetadataReport#getExportedURLsContent(String, String)} method
+	/*
+	 * @Test public void testGetExportedURLs() { String serviceName = null; String
+	 * exportedServiceRevision = null; assertEquals(emptySet(),
+	 * abstractMetadataReport.getExportedURLs(serviceName,
+	 * exportedServiceRevision)); }
+	 * 
+	 * /** Test {@link MetadataReport#getExportedURLsContent(String, String)} method
 	 *
 	 * @since 2.7.8
 	 */
-/*
-	@Test
-	public void testGetExportedURLsContent() {
-		String serviceName = null;
-		String exportedServiceRevision = null;
-		assertNull(abstractMetadataReport.getExportedURLsContent(serviceName, exportedServiceRevision));
-	}
-*/
+	/*
+	 * @Test public void testGetExportedURLsContent() { String serviceName = null;
+	 * String exportedServiceRevision = null;
+	 * assertNull(abstractMetadataReport.getExportedURLsContent(serviceName,
+	 * exportedServiceRevision)); }
+	 */
 	private FullServiceDefinition toServiceDefinition(String v) {
 		Gson gson = new Gson();
 		FullServiceDefinition data = gson.fromJson(v, FullServiceDefinition.class);
@@ -375,131 +524,6 @@ public class AbstractMetadataReportTest {
 			map.put(pair[0], pair[1]);
 		}
 		return map;
-	}
-
-	private static class NewMetadataReport extends AbstractMetadataReport {
-
-		Map<String, String> store = new ConcurrentHashMap<>();
-
-		public NewMetadataReport(URL metadataReportURL) {
-			super(metadataReportURL);
-		}
-
-		@Override
-		protected void doStoreProviderMetadata(MetadataIdentifier providerMetadataIdentifier,
-				String serviceDefinitions) {
-			store.put(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY), serviceDefinitions);
-		}
-
-		@Override
-		protected void doStoreConsumerMetadata(MetadataIdentifier consumerMetadataIdentifier,
-				String serviceParameterString) {
-			store.put(consumerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY), serviceParameterString);
-		}
-
-		@Override
-		protected void doSaveMetadata(ServiceMetadataIdentifier metadataIdentifier, URL url) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		protected void doRemoveMetadata(ServiceMetadataIdentifier metadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		protected List<String> doGetExportedURLs(ServiceMetadataIdentifier metadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		protected void doSaveSubscriberData(SubscriberMetadataIdentifier subscriberMetadataIdentifier, String urls) {
-
-		}
-
-		@Override
-		protected String doGetSubscribedURLs(SubscriberMetadataIdentifier metadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		public String getServiceDefinition(MetadataIdentifier consumerMetadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-	}
-
-	private static class RetryMetadataReport extends AbstractMetadataReport {
-
-		Map<String, String> store = new ConcurrentHashMap<>();
-		int needRetryTimes;
-		int executeTimes = 0;
-
-		public RetryMetadataReport(URL metadataReportURL, int needRetryTimes) {
-			super(metadataReportURL);
-			this.needRetryTimes = needRetryTimes;
-		}
-
-		@Override
-		protected void doStoreProviderMetadata(MetadataIdentifier providerMetadataIdentifier,
-				String serviceDefinitions) {
-			++executeTimes;
-			System.out.println("***" + executeTimes + ";" + System.currentTimeMillis());
-			if (executeTimes <= needRetryTimes) {
-				throw new RuntimeException("must retry:" + executeTimes);
-			}
-			store.put(providerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY), serviceDefinitions);
-		}
-
-		@Override
-		protected void doStoreConsumerMetadata(MetadataIdentifier consumerMetadataIdentifier,
-				String serviceParameterString) {
-			++executeTimes;
-			if (executeTimes <= needRetryTimes) {
-				throw new RuntimeException("must retry:" + executeTimes);
-			}
-			store.put(consumerMetadataIdentifier.getUniqueKey(KeyTypeEnum.UNIQUE_KEY), serviceParameterString);
-		}
-
-		@Override
-		protected void doSaveMetadata(ServiceMetadataIdentifier metadataIdentifier, URL url) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		protected void doRemoveMetadata(ServiceMetadataIdentifier metadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		protected List<String> doGetExportedURLs(ServiceMetadataIdentifier metadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		protected void doSaveSubscriberData(SubscriberMetadataIdentifier subscriberMetadataIdentifier, String urls) {
-
-		}
-
-		@Override
-		protected String doGetSubscribedURLs(SubscriberMetadataIdentifier metadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
-		@Override
-		public String getServiceDefinition(MetadataIdentifier consumerMetadataIdentifier) {
-			throw new UnsupportedOperationException(
-					"This extension does not support working as a remote metadata center.");
-		}
-
 	}
 
 }

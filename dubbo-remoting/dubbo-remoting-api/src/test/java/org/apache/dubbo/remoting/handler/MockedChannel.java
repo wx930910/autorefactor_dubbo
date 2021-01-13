@@ -16,100 +16,78 @@
  */
 package org.apache.dubbo.remoting.handler;
 
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.remoting.Channel;
-import org.apache.dubbo.remoting.ChannelHandler;
-import org.apache.dubbo.remoting.RemotingException;
-
-import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MockedChannel implements Channel {
-    private boolean isClosed;
-    private volatile boolean closing = false;
-    private URL url;
-    private ChannelHandler handler;
-    private Map<String, Object> map = new HashMap<String, Object>();
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.remoting.Channel;
+import org.apache.dubbo.remoting.ChannelHandler;
+import org.mockito.Mockito;
 
-    public MockedChannel() {
-        super();
-    }
-
-
-    @Override
-    public URL getUrl() {
-        return url;
-    }
-
-    @Override
-    public ChannelHandler getChannelHandler() {
-
-        return this.handler;
-    }
-
-    @Override
-    public InetSocketAddress getLocalAddress() {
-
-        return null;
-    }
-
-    @Override
-    public void send(Object message) throws RemotingException {
-    }
-
-    @Override
-    public void send(Object message, boolean sent) throws RemotingException {
-        this.send(message);
-    }
-
-    @Override
-    public void close() {
-        isClosed = true;
-    }
-
-    @Override
-    public void close(int timeout) {
-        this.close();
-    }
-
-    @Override
-    public void startClose() {
-        closing = true;
-    }
-
-    @Override
-    public boolean isClosed() {
-        return isClosed;
-    }
-
-    @Override
-    public InetSocketAddress getRemoteAddress() {
-        return null;
-    }
-
-    @Override
-    public boolean isConnected() {
-        return false;
-    }
-
-    @Override
-    public boolean hasAttribute(String key) {
-        return map.containsKey(key);
-    }
-
-    @Override
-    public Object getAttribute(String key) {
-        return map.get(key);
-    }
-
-    @Override
-    public void setAttribute(String key, Object value) {
-        map.put(key, value);
-    }
-
-    @Override
-    public void removeAttribute(String key) {
-        map.remove(key);
-    }
+public class MockedChannel {
+	static public Channel mockChannel1() {
+		ChannelHandler mockFieldVariableHandler = null;
+		URL mockFieldVariableUrl = null;
+		Map<String, Object> mockFieldVariableMap = new HashMap<String, Object>();
+		boolean[] mockFieldVariableIsClosed = new boolean[1];
+		Channel mockInstance = Mockito.mock(Channel.class,
+				Mockito.withSettings().useConstructor().defaultAnswer(Mockito.CALLS_REAL_METHODS));
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getRemoteAddress();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				mockFieldVariableMap.remove(key);
+				return null;
+			}).when(mockInstance).removeAttribute(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				return mockFieldVariableMap.get(key);
+			}).when(mockInstance).getAttribute(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).isConnected();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getLocalAddress();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableUrl;
+			}).when(mockInstance).getUrl();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).startClose();
+			Mockito.doAnswer((stubInvo) -> {
+				Object message = stubInvo.getArgument(0);
+				mockInstance.send(message);
+				return null;
+			}).when(mockInstance).send(Mockito.any(Object.class), Mockito.anyBoolean());
+			Mockito.doAnswer((stubInvo) -> {
+				mockInstance.close();
+				return null;
+			}).when(mockInstance).close(Mockito.anyInt());
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableIsClosed[0];
+			}).when(mockInstance).isClosed();
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				Object value = stubInvo.getArgument(1);
+				mockFieldVariableMap.put(key, value);
+				return null;
+			}).when(mockInstance).setAttribute(Mockito.any(String.class), Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				String key = stubInvo.getArgument(0);
+				return mockFieldVariableMap.containsKey(key);
+			}).when(mockInstance).hasAttribute(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				mockFieldVariableIsClosed[0] = true;
+				return null;
+			}).when(mockInstance).close();
+			Mockito.doAnswer((stubInvo) -> {
+				return mockFieldVariableHandler;
+			}).when(mockInstance).getChannelHandler();
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 }

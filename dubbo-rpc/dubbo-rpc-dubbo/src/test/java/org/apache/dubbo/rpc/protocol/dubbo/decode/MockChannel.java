@@ -16,100 +16,93 @@
  */
 package org.apache.dubbo.rpc.protocol.dubbo.decode;
 
-import org.apache.dubbo.common.URL;
-import org.apache.dubbo.common.utils.NetUtils;
-import org.apache.dubbo.remoting.Channel;
-import org.apache.dubbo.remoting.ChannelHandler;
-import org.apache.dubbo.remoting.RemotingException;
-
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
-public class MockChannel implements Channel {
-    private Consumer consumer;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.utils.NetUtils;
+import org.apache.dubbo.remoting.Channel;
+import org.mockito.Mockito;
 
-    public MockChannel() {
+public class MockChannel {
+	static public Channel mockChannel2() {
+		Consumer mockFieldVariableConsumer = null;
+		Channel mockInstance = Mockito.spy(Channel.class);
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return new InetSocketAddress(NetUtils.getAvailablePort());
+			}).when(mockInstance).getRemoteAddress();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getChannelHandler();
+			Mockito.doAnswer((stubInvo) -> {
+				Object message = stubInvo.getArgument(0);
+				if (mockFieldVariableConsumer != null) {
+					mockFieldVariableConsumer.accept(message);
+				}
+				return null;
+			}).when(mockInstance).send(Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).hasAttribute(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return new InetSocketAddress(20883);
+			}).when(mockInstance).getLocalAddress();
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).isConnected();
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).isClosed();
+			Mockito.doAnswer((stubInvo) -> {
+				return new URL("dubbo", "localhost", 20880);
+			}).when(mockInstance).getUrl();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getAttribute(Mockito.any(String.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    }
-
-    public MockChannel(Consumer consumer) {
-        this.consumer = consumer;
-    }
-
-    @Override
-    public InetSocketAddress getRemoteAddress() {
-        return new InetSocketAddress(NetUtils.getAvailablePort());
-    }
-
-    @Override
-    public boolean isConnected() {
-        return false;
-    }
-
-    @Override
-    public boolean hasAttribute(String key) {
-        return false;
-    }
-
-    @Override
-    public Object getAttribute(String key) {
-        return null;
-    }
-
-    @Override
-    public void setAttribute(String key, Object value) {
-
-    }
-
-    @Override
-    public void removeAttribute(String key) {
-
-    }
-
-    @Override
-    public URL getUrl() {
-        return new URL("dubbo", "localhost", 20880);
-    }
-
-    @Override
-    public ChannelHandler getChannelHandler() {
-        return null;
-    }
-
-    @Override
-    public InetSocketAddress getLocalAddress() {
-        return new InetSocketAddress(20883);
-    }
-
-    @Override
-    public void send(Object message) throws RemotingException {
-        if (consumer != null) {
-            consumer.accept(message);
-        }
-    }
-
-    @Override
-    public void send(Object message, boolean sent) throws RemotingException {
-
-    }
-
-    @Override
-    public void close() {
-
-    }
-
-    @Override
-    public void close(int timeout) {
-
-    }
-
-    @Override
-    public void startClose() {
-
-    }
-
-    @Override
-    public boolean isClosed() {
-        return false;
-    }
+	static public Channel mockChannel1(Consumer consumer) {
+		Consumer[] mockFieldVariableConsumer = new Consumer[1];
+		Channel mockInstance = Mockito.spy(Channel.class);
+		mockFieldVariableConsumer[0] = consumer;
+		try {
+			Mockito.doAnswer((stubInvo) -> {
+				return new InetSocketAddress(NetUtils.getAvailablePort());
+			}).when(mockInstance).getRemoteAddress();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getChannelHandler();
+			Mockito.doAnswer((stubInvo) -> {
+				Object message = stubInvo.getArgument(0);
+				if (mockFieldVariableConsumer[0] != null) {
+					mockFieldVariableConsumer[0].accept(message);
+				}
+				return null;
+			}).when(mockInstance).send(Mockito.any(Object.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).hasAttribute(Mockito.any(String.class));
+			Mockito.doAnswer((stubInvo) -> {
+				return new InetSocketAddress(20883);
+			}).when(mockInstance).getLocalAddress();
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).isConnected();
+			Mockito.doAnswer((stubInvo) -> {
+				return false;
+			}).when(mockInstance).isClosed();
+			Mockito.doAnswer((stubInvo) -> {
+				return new URL("dubbo", "localhost", 20880);
+			}).when(mockInstance).getUrl();
+			Mockito.doAnswer((stubInvo) -> {
+				return null;
+			}).when(mockInstance).getAttribute(Mockito.any(String.class));
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 }

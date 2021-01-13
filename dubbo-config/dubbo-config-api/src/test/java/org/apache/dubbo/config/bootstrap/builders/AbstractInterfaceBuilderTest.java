@@ -16,6 +16,8 @@
  */
 package org.apache.dubbo.config.bootstrap.builders;
 
+import java.util.Collections;
+
 import org.apache.dubbo.config.AbstractInterfaceConfig;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ConfigCenterConfig;
@@ -23,289 +25,290 @@ import org.apache.dubbo.config.MetadataReportConfig;
 import org.apache.dubbo.config.ModuleConfig;
 import org.apache.dubbo.config.MonitorConfig;
 import org.apache.dubbo.config.RegistryConfig;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
+import org.mockito.Mockito;
 
 class AbstractInterfaceBuilderTest {
 
-    @Test
-    void local() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.local("GreetingMock");
-        Assertions.assertEquals("GreetingMock", builder.build().getLocal());
-    }
+	static private AbstractInterfaceConfig mockAbstractInterfaceConfig1() {
+		AbstractInterfaceConfig mockInstance = Mockito.spy(AbstractInterfaceConfig.class);
+		try {
+		} catch (Exception exception) {
+		}
+		return mockInstance;
+	}
 
-    @Test
-    void local1() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.local((Boolean) null);
-        Assertions.assertNull(builder.build().getLocal());
-        builder.local(false);
-        Assertions.assertEquals("false", builder.build().getLocal());
-        builder.local(true);
-        Assertions.assertEquals("true", builder.build().getLocal());
-    }
+	@Test
+	void local() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.local("GreetingMock");
+		Assertions.assertEquals("GreetingMock", builder.build().getLocal());
+	}
 
-    @Test
-    void stub() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.stub("GreetingMock");
-        Assertions.assertEquals("GreetingMock", builder.build().getStub());
-    }
+	@Test
+	void local1() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.local((Boolean) null);
+		Assertions.assertNull(builder.build().getLocal());
+		builder.local(false);
+		Assertions.assertEquals("false", builder.build().getLocal());
+		builder.local(true);
+		Assertions.assertEquals("true", builder.build().getLocal());
+	}
 
-    @Test
-    void stub1() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.stub((Boolean) null);
-        Assertions.assertNull(builder.build().getLocal());
-        builder.stub(false);
-        Assertions.assertEquals("false", builder.build().getStub());
-        builder.stub(true);
-        Assertions.assertEquals("true", builder.build().getStub());
-    }
+	@Test
+	void stub() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.stub("GreetingMock");
+		Assertions.assertEquals("GreetingMock", builder.build().getStub());
+	}
 
-    @Test
-    void monitor() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.monitor("123");
+	@Test
+	void stub1() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.stub((Boolean) null);
+		Assertions.assertNull(builder.build().getLocal());
+		builder.stub(false);
+		Assertions.assertEquals("false", builder.build().getStub());
+		builder.stub(true);
+		Assertions.assertEquals("true", builder.build().getStub());
+	}
 
-        MonitorConfig monitorConfig = new MonitorConfig("123");
-        Assertions.assertEquals(monitorConfig, builder.build().getMonitor());
-    }
+	@Test
+	void monitor() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.monitor("123");
 
-    @Test
-    void monitor1() {
-        MonitorConfig monitorConfig = new MonitorConfig("123");
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.monitor(monitorConfig);
+		MonitorConfig monitorConfig = new MonitorConfig("123");
+		Assertions.assertEquals(monitorConfig, builder.build().getMonitor());
+	}
 
-        Assertions.assertEquals(monitorConfig, builder.build().getMonitor());
-    }
+	@Test
+	void monitor1() {
+		MonitorConfig monitorConfig = new MonitorConfig("123");
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.monitor(monitorConfig);
 
-    @Test
-    void proxy() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.proxy("mockproxyfactory");
+		Assertions.assertEquals(monitorConfig, builder.build().getMonitor());
+	}
 
-        Assertions.assertEquals("mockproxyfactory", builder.build().getProxy());
-    }
+	@Test
+	void proxy() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.proxy("mockproxyfactory");
 
-    @Test
-    void cluster() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.cluster("mockcluster");
+		Assertions.assertEquals("mockproxyfactory", builder.build().getProxy());
+	}
 
-        Assertions.assertEquals("mockcluster", builder.build().getCluster());
-    }
+	@Test
+	void cluster() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.cluster("mockcluster");
 
-    @Test
-    void filter() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.filter("mockfilter");
+		Assertions.assertEquals("mockcluster", builder.build().getCluster());
+	}
 
-        Assertions.assertEquals("mockfilter", builder.build().getFilter());
-    }
+	@Test
+	void filter() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.filter("mockfilter");
 
-    @Test
-    void listener() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.listener("mockinvokerlistener");
+		Assertions.assertEquals("mockfilter", builder.build().getFilter());
+	}
 
-        Assertions.assertEquals("mockinvokerlistener", builder.build().getListener());
-    }
+	@Test
+	void listener() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.listener("mockinvokerlistener");
 
-    @Test
-    void owner() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.owner("owner");
+		Assertions.assertEquals("mockinvokerlistener", builder.build().getListener());
+	}
 
-        Assertions.assertEquals("owner", builder.build().getOwner());
-    }
+	@Test
+	void owner() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.owner("owner");
 
-    @Test
-    void connections() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.connections(1);
+		Assertions.assertEquals("owner", builder.build().getOwner());
+	}
 
-        Assertions.assertEquals(1, builder.build().getConnections().intValue());
-    }
+	@Test
+	void connections() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.connections(1);
 
-    @Test
-    void layer() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.layer("layer");
+		Assertions.assertEquals(1, builder.build().getConnections().intValue());
+	}
 
-        Assertions.assertEquals("layer", builder.build().getLayer());
-    }
+	@Test
+	void layer() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.layer("layer");
 
-    @Test
-    void application() {
-        ApplicationConfig applicationConfig = new ApplicationConfig();
+		Assertions.assertEquals("layer", builder.build().getLayer());
+	}
 
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.application(applicationConfig);
+	@Test
+	void application() {
+		ApplicationConfig applicationConfig = new ApplicationConfig();
 
-        Assertions.assertEquals(applicationConfig, builder.build().getApplication());
-    }
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.application(applicationConfig);
 
-    @Test
-    void module() {
-        ModuleConfig moduleConfig = new ModuleConfig();
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.module(moduleConfig);
+		Assertions.assertEquals(applicationConfig, builder.build().getApplication());
+	}
 
-        Assertions.assertEquals(moduleConfig, builder.build().getModule());
-    }
+	@Test
+	void module() {
+		ModuleConfig moduleConfig = new ModuleConfig();
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.module(moduleConfig);
 
-    @Test
-    void addRegistries() {
-        RegistryConfig registryConfig = new RegistryConfig();
+		Assertions.assertEquals(moduleConfig, builder.build().getModule());
+	}
 
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.addRegistries(Collections.singletonList(registryConfig));
+	@Test
+	void addRegistries() {
+		RegistryConfig registryConfig = new RegistryConfig();
 
-        Assertions.assertEquals(1, builder.build().getRegistries().size());
-        Assertions.assertSame(registryConfig, builder.build().getRegistries().get(0));
-        Assertions.assertSame(registryConfig, builder.build().getRegistry());
-    }
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.addRegistries(Collections.singletonList(registryConfig));
 
-    @Test
-    void addRegistry() {
-        RegistryConfig registryConfig = new RegistryConfig();
+		Assertions.assertEquals(1, builder.build().getRegistries().size());
+		Assertions.assertSame(registryConfig, builder.build().getRegistries().get(0));
+		Assertions.assertSame(registryConfig, builder.build().getRegistry());
+	}
 
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.addRegistry(registryConfig);
+	@Test
+	void addRegistry() {
+		RegistryConfig registryConfig = new RegistryConfig();
 
-        Assertions.assertEquals(1, builder.build().getRegistries().size());
-        Assertions.assertSame(registryConfig, builder.build().getRegistries().get(0));
-        Assertions.assertSame(registryConfig, builder.build().getRegistry());
-    }
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.addRegistry(registryConfig);
 
-    @Test
-    void registryIds() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.registryIds("registryIds");
+		Assertions.assertEquals(1, builder.build().getRegistries().size());
+		Assertions.assertSame(registryConfig, builder.build().getRegistries().get(0));
+		Assertions.assertSame(registryConfig, builder.build().getRegistry());
+	}
 
-        Assertions.assertEquals("registryIds", builder.build().getRegistryIds());
-    }
+	@Test
+	void registryIds() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.registryIds("registryIds");
 
-    @Test
-    void onconnect() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.onconnect("onconnect");
+		Assertions.assertEquals("registryIds", builder.build().getRegistryIds());
+	}
 
-        Assertions.assertEquals("onconnect", builder.build().getOnconnect());
-    }
+	@Test
+	void onconnect() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.onconnect("onconnect");
 
-    @Test
-    void ondisconnect() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.ondisconnect("ondisconnect");
+		Assertions.assertEquals("onconnect", builder.build().getOnconnect());
+	}
 
-        Assertions.assertEquals("ondisconnect", builder.build().getOndisconnect());
-    }
+	@Test
+	void ondisconnect() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.ondisconnect("ondisconnect");
 
-    @Test
-    void metadataReportConfig() {
-        MetadataReportConfig metadataReportConfig = new MetadataReportConfig();
+		Assertions.assertEquals("ondisconnect", builder.build().getOndisconnect());
+	}
 
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.metadataReportConfig(metadataReportConfig);
+	@Test
+	void metadataReportConfig() {
+		MetadataReportConfig metadataReportConfig = new MetadataReportConfig();
 
-        Assertions.assertEquals(metadataReportConfig, builder.build().getMetadataReportConfig());
-    }
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.metadataReportConfig(metadataReportConfig);
 
-    @Test
-    void configCenter() {
-        ConfigCenterConfig configCenterConfig = new ConfigCenterConfig();
+		Assertions.assertEquals(metadataReportConfig, builder.build().getMetadataReportConfig());
+	}
 
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.configCenter(configCenterConfig);
+	@Test
+	void configCenter() {
+		ConfigCenterConfig configCenterConfig = new ConfigCenterConfig();
 
-        Assertions.assertEquals(configCenterConfig, builder.build().getConfigCenter());
-    }
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.configCenter(configCenterConfig);
 
-    @Test
-    void callbacks() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.callbacks(2);
-        Assertions.assertEquals(2, builder.build().getCallbacks().intValue());
-    }
+		Assertions.assertEquals(configCenterConfig, builder.build().getConfigCenter());
+	}
 
-    @Test
-    void scope() {
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.scope("scope");
+	@Test
+	void callbacks() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.callbacks(2);
+		Assertions.assertEquals(2, builder.build().getCallbacks().intValue());
+	}
 
-        Assertions.assertEquals("scope", builder.build().getScope());
-    }
+	@Test
+	void scope() {
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.scope("scope");
 
-    @Test
-    void build() {
-        MonitorConfig monitorConfig = new MonitorConfig("123");
-        ApplicationConfig applicationConfig = new ApplicationConfig();
-        ModuleConfig moduleConfig = new ModuleConfig();
-        RegistryConfig registryConfig = new RegistryConfig();
-        MetadataReportConfig metadataReportConfig = new MetadataReportConfig();
-        ConfigCenterConfig configCenterConfig = new ConfigCenterConfig();
+		Assertions.assertEquals("scope", builder.build().getScope());
+	}
 
-        InterfaceBuilder builder = new InterfaceBuilder();
-        builder.id("id").prefix("prefix").local(true).stub(false).monitor("123").proxy("mockproxyfactory").cluster("mockcluster")
-                .filter("mockfilter").listener("mockinvokerlistener").owner("owner").connections(1)
-                .layer("layer").application(applicationConfig).module(moduleConfig)
-                .addRegistry(registryConfig).registryIds("registryIds")
-                .onconnect("onconnet").ondisconnect("ondisconnect")
-                .metadataReportConfig(metadataReportConfig)
-                .configCenter(configCenterConfig)
-                .callbacks(2).scope("scope");
+	@Test
+	void build() {
+		MonitorConfig monitorConfig = new MonitorConfig("123");
+		ApplicationConfig applicationConfig = new ApplicationConfig();
+		ModuleConfig moduleConfig = new ModuleConfig();
+		RegistryConfig registryConfig = new RegistryConfig();
+		MetadataReportConfig metadataReportConfig = new MetadataReportConfig();
+		ConfigCenterConfig configCenterConfig = new ConfigCenterConfig();
 
-        InterfaceConfig config = builder.build();
-        InterfaceConfig config2 = builder.build();
+		InterfaceBuilder builder = new InterfaceBuilder();
+		builder.id("id").prefix("prefix").local(true).stub(false).monitor("123").proxy("mockproxyfactory")
+				.cluster("mockcluster").filter("mockfilter").listener("mockinvokerlistener").owner("owner")
+				.connections(1).layer("layer").application(applicationConfig).module(moduleConfig)
+				.addRegistry(registryConfig).registryIds("registryIds").onconnect("onconnet")
+				.ondisconnect("ondisconnect").metadataReportConfig(metadataReportConfig)
+				.configCenter(configCenterConfig).callbacks(2).scope("scope");
 
-        Assertions.assertEquals("id", config.getId());
-        Assertions.assertEquals("prefix", config.getPrefix());
-        Assertions.assertEquals("true", config.getLocal());
-        Assertions.assertEquals("false", config.getStub());
-        Assertions.assertEquals(monitorConfig, config.getMonitor());
-        Assertions.assertEquals("mockproxyfactory", config.getProxy());
-        Assertions.assertEquals("mockcluster", config.getCluster());
-        Assertions.assertEquals("mockfilter", config.getFilter());
-        Assertions.assertEquals("mockinvokerlistener", config.getListener());
-        Assertions.assertEquals("owner", config.getOwner());
-        Assertions.assertEquals(1, config.getConnections().intValue());
-        Assertions.assertEquals("layer", config.getLayer());
-        Assertions.assertEquals(applicationConfig, config.getApplication());
-        Assertions.assertEquals(moduleConfig, config.getModule());
-        Assertions.assertEquals(registryConfig, config.getRegistry());
-        Assertions.assertEquals("registryIds", config.getRegistryIds());
-        Assertions.assertEquals("onconnet", config.getOnconnect());
-        Assertions.assertEquals("ondisconnect", config.getOndisconnect());
-        Assertions.assertEquals(metadataReportConfig, config.getMetadataReportConfig());
-        Assertions.assertEquals(configCenterConfig, config.getConfigCenter());
-        Assertions.assertEquals(2, config.getCallbacks().intValue());
-        Assertions.assertEquals("scope", config.getScope());
+		AbstractInterfaceConfig config = builder.build();
+		AbstractInterfaceConfig config2 = builder.build();
 
-        Assertions.assertNotSame(config, config2);
-    }
+		Assertions.assertEquals("id", config.getId());
+		Assertions.assertEquals("prefix", config.getPrefix());
+		Assertions.assertEquals("true", config.getLocal());
+		Assertions.assertEquals("false", config.getStub());
+		Assertions.assertEquals(monitorConfig, config.getMonitor());
+		Assertions.assertEquals("mockproxyfactory", config.getProxy());
+		Assertions.assertEquals("mockcluster", config.getCluster());
+		Assertions.assertEquals("mockfilter", config.getFilter());
+		Assertions.assertEquals("mockinvokerlistener", config.getListener());
+		Assertions.assertEquals("owner", config.getOwner());
+		Assertions.assertEquals(1, config.getConnections().intValue());
+		Assertions.assertEquals("layer", config.getLayer());
+		Assertions.assertEquals(applicationConfig, config.getApplication());
+		Assertions.assertEquals(moduleConfig, config.getModule());
+		Assertions.assertEquals(registryConfig, config.getRegistry());
+		Assertions.assertEquals("registryIds", config.getRegistryIds());
+		Assertions.assertEquals("onconnet", config.getOnconnect());
+		Assertions.assertEquals("ondisconnect", config.getOndisconnect());
+		Assertions.assertEquals(metadataReportConfig, config.getMetadataReportConfig());
+		Assertions.assertEquals(configCenterConfig, config.getConfigCenter());
+		Assertions.assertEquals(2, config.getCallbacks().intValue());
+		Assertions.assertEquals("scope", config.getScope());
 
-    private static class InterfaceBuilder extends AbstractInterfaceBuilder<InterfaceConfig, InterfaceBuilder> {
+		Assertions.assertNotSame(config, config2);
+	}
 
-        public InterfaceConfig build() {
-            InterfaceConfig config = new InterfaceConfig();
-            super.build(config);
+	private static class InterfaceBuilder extends AbstractInterfaceBuilder<AbstractInterfaceConfig, InterfaceBuilder> {
 
-            return config;
-        }
+		public AbstractInterfaceConfig build() {
+			AbstractInterfaceConfig config = AbstractInterfaceBuilderTest.mockAbstractInterfaceConfig1();
+			super.build(config);
 
-        @Override
-        protected InterfaceBuilder getThis() {
-            return this;
-        }
-    }
+			return config;
+		}
 
-    private static class InterfaceConfig extends AbstractInterfaceConfig {
-    }
+		@Override
+		protected InterfaceBuilder getThis() {
+			return this;
+		}
+	}
 }

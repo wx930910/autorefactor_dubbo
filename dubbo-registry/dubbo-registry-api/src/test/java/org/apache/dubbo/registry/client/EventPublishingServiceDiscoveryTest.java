@@ -16,6 +16,10 @@
  */
 package org.apache.dubbo.registry.client;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.event.EventDispatcher;
 import org.apache.dubbo.event.EventListener;
@@ -25,14 +29,9 @@ import org.apache.dubbo.registry.client.event.ServiceDiscoveryInitializedEvent;
 import org.apache.dubbo.registry.client.event.ServiceDiscoveryInitializingEvent;
 import org.apache.dubbo.registry.client.event.ServiceInstancePreRegisteredEvent;
 import org.apache.dubbo.registry.client.event.ServiceInstanceRegisteredEvent;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * {@link EventPublishingServiceDiscovery} Test
@@ -41,123 +40,123 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class EventPublishingServiceDiscoveryTest {
 
-    private static final URL url = URL.valueOf("zookeeper://127.0.0.1:2181/");
+	private static final URL url = URL.valueOf("zookeeper://127.0.0.1:2181/");
 
-    private EventDispatcher eventDispatcher = EventDispatcher.getDefaultExtension();
+	private EventDispatcher eventDispatcher = EventDispatcher.getDefaultExtension();
 
-    private InMemoryServiceDiscovery delegate;
+	private ServiceDiscovery delegate;
 
-    private EventPublishingServiceDiscovery serviceDiscovery;
+	private EventPublishingServiceDiscovery serviceDiscovery;
 
-    private ServiceDiscoveryTest serviceDiscoveryTest;
+	private ServiceDiscoveryTest serviceDiscoveryTest;
 
-    @BeforeEach
-    public void init() throws Exception {
+	@BeforeEach
+	public void init() throws Exception {
 
-        // remove all EventListeners
-        eventDispatcher.removeAllEventListeners();
+		// remove all EventListeners
+		eventDispatcher.removeAllEventListeners();
 
-        delegate = new InMemoryServiceDiscovery();
+		delegate = InMemoryServiceDiscovery.mockServiceDiscovery1();
 
-        serviceDiscovery = new EventPublishingServiceDiscovery(delegate);
+		serviceDiscovery = new EventPublishingServiceDiscovery(delegate);
 
-        serviceDiscoveryTest = new ServiceDiscoveryTest();
+		serviceDiscoveryTest = new ServiceDiscoveryTest();
 
-        serviceDiscoveryTest.setServiceDiscovery(serviceDiscovery);
+		serviceDiscoveryTest.setServiceDiscovery(serviceDiscovery);
 
-        // ServiceDiscoveryStartingEvent
-        eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryInitializingEvent>() {
-            @Override
-            public void onEvent(ServiceDiscoveryInitializingEvent event) {
-                assertNotNull(event.getServiceDiscovery());
-            }
-        });
+		// ServiceDiscoveryStartingEvent
+		eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryInitializingEvent>() {
+			@Override
+			public void onEvent(ServiceDiscoveryInitializingEvent event) {
+				assertNotNull(event.getServiceDiscovery());
+			}
+		});
 
-        // ServiceDiscoveryStartedEvent
-        eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryInitializedEvent>() {
-            @Override
-            public void onEvent(ServiceDiscoveryInitializedEvent event) {
-                assertNotNull(event.getServiceDiscovery());
-            }
-        });
+		// ServiceDiscoveryStartedEvent
+		eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryInitializedEvent>() {
+			@Override
+			public void onEvent(ServiceDiscoveryInitializedEvent event) {
+				assertNotNull(event.getServiceDiscovery());
+			}
+		});
 
-        // ServiceInstancePreRegisteredEvent
-        eventDispatcher.addEventListener(new EventListener<ServiceInstancePreRegisteredEvent>() {
-            @Override
-            public void onEvent(ServiceInstancePreRegisteredEvent event) {
-                assertNotNull(event.getServiceInstance());
-            }
-        });
+		// ServiceInstancePreRegisteredEvent
+		eventDispatcher.addEventListener(new EventListener<ServiceInstancePreRegisteredEvent>() {
+			@Override
+			public void onEvent(ServiceInstancePreRegisteredEvent event) {
+				assertNotNull(event.getServiceInstance());
+			}
+		});
 
-        // ServiceInstanceRegisteredEvent
-        eventDispatcher.addEventListener(new EventListener<ServiceInstanceRegisteredEvent>() {
-            @Override
-            public void onEvent(ServiceInstanceRegisteredEvent event) {
-                assertNotNull(event.getServiceInstance());
-            }
-        });
+		// ServiceInstanceRegisteredEvent
+		eventDispatcher.addEventListener(new EventListener<ServiceInstanceRegisteredEvent>() {
+			@Override
+			public void onEvent(ServiceInstanceRegisteredEvent event) {
+				assertNotNull(event.getServiceInstance());
+			}
+		});
 
-        assertFalse(serviceDiscovery.isInitialized());
-        assertFalse(serviceDiscovery.isDestroyed());
+		assertFalse(serviceDiscovery.isInitialized());
+		assertFalse(serviceDiscovery.isDestroyed());
 
-        // test start()
-        serviceDiscoveryTest.init();
+		// test start()
+		serviceDiscoveryTest.init();
 
-        assertTrue(serviceDiscovery.isInitialized());
-        assertFalse(serviceDiscovery.isDestroyed());
-    }
+		assertTrue(serviceDiscovery.isInitialized());
+		assertFalse(serviceDiscovery.isDestroyed());
+	}
 
-    @AfterEach
-    public void destroy() throws Exception {
+	@AfterEach
+	public void destroy() throws Exception {
 
-        // ServiceDiscoveryStoppingEvent
-        eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryDestroyingEvent>() {
-            @Override
-            public void onEvent(ServiceDiscoveryDestroyingEvent event) {
-                assertNotNull(event.getServiceDiscovery());
-            }
-        });
+		// ServiceDiscoveryStoppingEvent
+		eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryDestroyingEvent>() {
+			@Override
+			public void onEvent(ServiceDiscoveryDestroyingEvent event) {
+				assertNotNull(event.getServiceDiscovery());
+			}
+		});
 
-        // ServiceDiscoveryStoppedEvent
-        eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryDestroyedEvent>() {
-            @Override
-            public void onEvent(ServiceDiscoveryDestroyedEvent event) {
-                assertNotNull(event.getServiceDiscovery());
-            }
-        });
+		// ServiceDiscoveryStoppedEvent
+		eventDispatcher.addEventListener(new EventListener<ServiceDiscoveryDestroyedEvent>() {
+			@Override
+			public void onEvent(ServiceDiscoveryDestroyedEvent event) {
+				assertNotNull(event.getServiceDiscovery());
+			}
+		});
 
-        assertTrue(serviceDiscovery.isInitialized());
-        assertFalse(serviceDiscovery.isDestroyed());
+		assertTrue(serviceDiscovery.isInitialized());
+		assertFalse(serviceDiscovery.isDestroyed());
 
-        // test stop()
-        serviceDiscoveryTest.destroy();
+		// test stop()
+		serviceDiscoveryTest.destroy();
 
-        assertTrue(serviceDiscovery.isInitialized());
-        assertTrue(serviceDiscovery.isDestroyed());
-    }
+		assertTrue(serviceDiscovery.isInitialized());
+		assertTrue(serviceDiscovery.isDestroyed());
+	}
 
-    @Test
-    public void testToString() {
-        serviceDiscoveryTest.testToString();
-    }
+	@Test
+	public void testToString() {
+		serviceDiscoveryTest.testToString();
+	}
 
-    @Test
-    public void testRegisterAndUpdateAndUnregister() {
-        serviceDiscoveryTest.testRegisterAndUpdateAndUnregister();
-    }
+	@Test
+	public void testRegisterAndUpdateAndUnregister() {
+		serviceDiscoveryTest.testRegisterAndUpdateAndUnregister();
+	}
 
-    @Test
-    public void testGetServices() {
-        serviceDiscoveryTest.testGetServices();
-    }
+	@Test
+	public void testGetServices() {
+		serviceDiscoveryTest.testGetServices();
+	}
 
-    @Test
-    public void testGetInstances() {
-        serviceDiscoveryTest.testGetInstances();
-    }
+	@Test
+	public void testGetInstances() {
+		serviceDiscoveryTest.testGetInstances();
+	}
 
-    @Test
-    public void testGetInstancesWithHealthy() {
-        serviceDiscoveryTest.testGetInstancesWithHealthy();
-    }
+	@Test
+	public void testGetInstancesWithHealthy() {
+		serviceDiscoveryTest.testGetInstancesWithHealthy();
+	}
 }

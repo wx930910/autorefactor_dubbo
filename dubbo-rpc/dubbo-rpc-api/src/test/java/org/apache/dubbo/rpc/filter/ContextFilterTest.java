@@ -16,6 +16,10 @@
  */
 package org.apache.dubbo.rpc.filter;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.AppResponse;
 import org.apache.dubbo.rpc.Filter;
@@ -26,51 +30,45 @@ import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.support.DemoService;
 import org.apache.dubbo.rpc.support.MockInvocation;
 import org.apache.dubbo.rpc.support.MyInvoker;
-
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-
 /**
- * ContextFilterTest.java
- * TODO need to enhance assertion
+ * ContextFilterTest.java TODO need to enhance assertion
  */
 public class ContextFilterTest {
 
-    Filter contextFilter = new ContextFilter();
-    Invoker<DemoService> invoker;
-    Invocation invocation;
+	Filter contextFilter = new ContextFilter();
+	Invoker<DemoService> invoker;
+	Invocation invocation;
 
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testSetContext() {
-        invocation = mock(Invocation.class);
-        given(invocation.getMethodName()).willReturn("$enumlength");
-        given(invocation.getParameterTypes()).willReturn(new Class<?>[]{Enum.class});
-        given(invocation.getArguments()).willReturn(new Object[]{"hello"});
-        given(invocation.getObjectAttachments()).willReturn(null);
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testSetContext() {
+		invocation = mock(Invocation.class);
+		given(invocation.getMethodName()).willReturn("$enumlength");
+		given(invocation.getParameterTypes()).willReturn(new Class<?>[] { Enum.class });
+		given(invocation.getArguments()).willReturn(new Object[] { "hello" });
+		given(invocation.getObjectAttachments()).willReturn(null);
 
-        invoker = mock(Invoker.class);
-        given(invoker.isAvailable()).willReturn(true);
-        given(invoker.getInterface()).willReturn(DemoService.class);
-        AppResponse result = new AppResponse();
-        result.setValue("High");
-        given(invoker.invoke(invocation)).willReturn(result);
-        URL url = URL.valueOf("test://test:11/test?group=dubbo&version=1.1");
-        given(invoker.getUrl()).willReturn(url);
+		invoker = mock(Invoker.class);
+		given(invoker.isAvailable()).willReturn(true);
+		given(invoker.getInterface()).willReturn(DemoService.class);
+		AppResponse result = new AppResponse();
+		result.setValue("High");
+		given(invoker.invoke(invocation)).willReturn(result);
+		URL url = URL.valueOf("test://test:11/test?group=dubbo&version=1.1");
+		given(invoker.getUrl()).willReturn(url);
 
-        contextFilter.invoke(invoker, invocation);
-        assertNull(RpcContext.getContext().getInvoker());
-    }
+		contextFilter.invoke(invoker, invocation);
+		assertNull(RpcContext.getContext().getInvoker());
+	}
 
-    @Test
-    public void testWithAttachments() {
-        URL url = URL.valueOf("test://test:11/test?group=dubbo&version=1.1");
-        Invoker<DemoService> invoker = new MyInvoker<DemoService>(url);
-        Invocation invocation = new MockInvocation();
-        Result result = contextFilter.invoke(invoker, invocation);
-        assertNull(RpcContext.getContext().getInvoker());
-    }
+	@Test
+	public void testWithAttachments() {
+		URL url = URL.valueOf("test://test:11/test?group=dubbo&version=1.1");
+		Invoker<DemoService> invoker = new MyInvoker<DemoService>(url);
+		Invocation invocation = MockInvocation.mockInvocation1();
+		Result result = contextFilter.invoke(invoker, invocation);
+		assertNull(RpcContext.getContext().getInvoker());
+	}
 }
